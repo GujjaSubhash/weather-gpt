@@ -15,24 +15,42 @@ type Props = {
 
 type Frame = { path: string; time: number; kind: 'past' | 'forecast' }
 
-const MAX_ZOOM = 7 // RainViewer radar tiles top out at zoom 7
+const INITIAL_ZOOM = 11 // city overview — shows all of Hyderabad
+const MAX_ZOOM = 18 // street level
 const MIN_ZOOM = 5
+const RADAR_MAX_NATIVE_ZOOM = 6 // RainViewer radar tiles are not produced above this
 const FRAME_MS = 500 // radar animation speed
 const RADAR_COLOR = 2 // RainViewer "Universal Blue" scheme — reads well on a dark map
 
-const riskColors: Record<string, string> = {
-  high: '#ef4444',
-  moderate: '#f59e0b',
-  safe: '#22c55e',
-}
+// Single source of truth for the radar legend. Colours are sampled along the
+// RainViewer colour scheme 2 ("Universal Blue") ramp so the swatches actually
+// match the tiles: pale blue → blue → deep blue/violet → magenta for extreme.
+const RADAR_LEGEND: { label: string; color: string }[] = [
+  { label: 'Light', color: '#9bd7f2' },
+  { label: 'Moderate', color: '#3b82c8' },
+  { label: 'Heavy', color: '#3a2f9e' },
+  { label: 'Extreme', color: '#d1359b' },
+]
+
+// Same colours the .risk-marker-* CSS classes use, so map marker and legend agree.
+const RISK_LEGEND: { label: string; color: string }[] = [
+  { label: 'High Risk', color: 'var(--red)' },
+  { label: 'Moderate', color: 'var(--amber)' },
+  { label: 'Safe', color: 'var(--green)' },
+]
 
 function makeIcon(L: typeof import('leaflet'), risk?: string) {
-  const color = riskColors[risk || 'safe']
+  // Class-driven so the marker can animate from globals.css (see .risk-marker).
+  const level = risk === 'high' || risk === 'moderate' || risk === 'safe' ? risk : 'safe'
   return L.divIcon({
     className: '',
-    html: `<div style="width:16px;height:16px;border-radius:50%;background:${color};border:2px solid white;box-shadow:0 0 12px ${color}"></div>`,
-    iconSize: [16, 16],
-    iconAnchor: [8, 8],
+    html:
+      `<div class="risk-marker risk-marker-${level}">` +
+      `<span class="risk-marker-pulse"></span>` +
+      `<span class="risk-marker-core"></span>` +
+      `</div>`,
+    iconSize: [18, 18],
+    iconAnchor: [9, 9],
   })
 }
 
@@ -49,6 +67,7 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
   const [frameCount, setFrameCount] = useState(0)
   const [frameLabel, setFrameLabel] = useState('')
   const [radarReady, setRadarReady] = useState(false)
+  const [radarError, setRadarError] = useState(false)
 
   // ── Init map, base layer, marker, and radar frames (once) ──
   useEffect(() => {
@@ -57,12 +76,14 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
       if (cancelled || !elRef.current || mapRef.current) return
       leafletRef.current = L
 
+      // The map itself is free to zoom to street level; only the radar tiles are
+      // limited by their native zoom (see RADAR_MAX_NATIVE_ZOOM below).
       const map = L.map(elRef.current, {
         zoomControl: false,
         scrollWheelZoom: false,
         minZoom: MIN_ZOOM,
         maxZoom: MAX_ZOOM,
-      }).setView([lat, lon], MAX_ZOOM)
+      }).setView([lat, lon], INITIAL_ZOOM)
 
       L.control.zoom({ position: 'topright' }).addTo(map)
 
@@ -97,16 +118,24 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
             ...nowcast.map((f) => ({ path: f.path, time: f.time, kind: 'forecast' as const })),
           ]
 
+          // An empty `nowcast` is normal — only a missing host or a completely
+          // empty frame list (past + nowcast) means there is no radar imagery.
           if (!host || frames.length === 0) {
-            addPrecipFallback(L, map)
+            setRadarError(true)
             return
           }
 
           // Pre-create a tile layer per frame (hidden); we cross-fade between them.
+          // `maxNativeZoom: RADAR_MAX_NATIVE_ZOOM` makes Leaflet fetch the z6 tile
+          // and upscale it above z6, so the radar animation stays VISIBLE at the
+          // default zoom 11 instead of vanishing. Setting `maxZoom:
+          // RADAR_MAX_NATIVE_ZOOM` instead would give a hard cutoff where the
+          // radar simply disappears above z6.
           frameLayersRef.current = frames.map((f) =>
             L.tileLayer(`${host}${f.path}/256/{z}/{x}/{y}/${RADAR_COLOR}/1_1.png`, {
               opacity: 0,
               maxZoom: MAX_ZOOM,
+              maxNativeZoom: RADAR_MAX_NATIVE_ZOOM,
               minZoom: MIN_ZOOM,
               tileSize: 256,
               zIndex: 5,
@@ -120,41 +149,36 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
           setRadarReady(true)
           setFrameIdx(startIdx)
         })
-        .catch(() => {
-          if (!cancelled && mapRef.current) addPrecipFallback(L, mapRef.current)
+        .catch((err) => {
+          console.error('RainViewer radar metadata failed to load:', err)
+          if (!cancelled) setRadarError(true)
         })
     })
 
     return () => {
       cancelled = true
-      mapRef.current?.remove()
+      // Detach the radar frame layers explicitly before dropping the refs.
+      const map = mapRef.current
+      if (map) {
+        frameLayersRef.current.forEach((layer) => {
+          if (map.hasLayer(layer)) map.removeLayer(layer)
+        })
+      }
+      frameLayersRef.current = []
+      framesRef.current = []
+      map?.remove()
       mapRef.current = null
       markerRef.current = null
       leafletRef.current = null
-      frameLayersRef.current = []
-      framesRef.current = []
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // OWM precipitation layer — used only if RainViewer is unavailable.
-  function addPrecipFallback(L: typeof import('leaflet'), map: LeafletMap) {
-    const key = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY
-    if (!key) return
-    L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${key}`, {
-      opacity: 0.6,
-      maxZoom: MAX_ZOOM,
-      minZoom: MIN_ZOOM,
-      zIndex: 5,
-    }).addTo(map)
-    setFrameLabel('Live precipitation (OpenWeatherMap)')
-  }
-
-  // ── Advance frames while playing ──
+  // ── Advance frames while playing (no-op until frames exist) ──
   useEffect(() => {
     if (!playing || frameCount === 0) return
     const id = setInterval(() => {
-      setFrameIdx((prev) => (prev + 1) % frameCount)
+      setFrameIdx((prev) => (frameCount === 0 ? 0 : (prev + 1) % frameCount))
     }, FRAME_MS)
     return () => clearInterval(id)
   }, [playing, frameCount])
@@ -163,23 +187,28 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
   useEffect(() => {
     const layers = frameLayersRef.current
     const frames = framesRef.current
-    if (!layers.length || !frames.length) return
+    // Only fade once the layers actually exist and line up with the frame list.
+    if (!layers.length || layers.length !== frames.length) return
+    const idx = frameIdx >= 0 && frameIdx < frames.length ? frameIdx : 0
+    // Exactly one frame visible at a time.
     layers.forEach((layer, i) => {
-      layer.setOpacity(i === frameIdx ? (frames[i].kind === 'forecast' ? 0.5 : 0.7) : 0)
+      layer.setOpacity(i === idx ? (frames[i].kind === 'forecast' ? 0.5 : 0.7) : 0)
     })
-    const f = frames[frameIdx]
+    const f = frames[idx]
     if (f) {
       const time = new Date(f.time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       setFrameLabel(`${time}${f.kind === 'forecast' ? ' · forecast' : ''}`)
     }
-  }, [frameIdx])
+  }, [frameIdx, frameCount])
 
   // ── React to location / risk changes ──
   useEffect(() => {
     const map = mapRef.current
     const L = leafletRef.current
     if (!map || !L) return
-    map.flyTo([lat, lon], MAX_ZOOM, { duration: 1.2 })
+    // Never zoom the user out, and never slam them to street level either.
+    const targetZoom = Math.max(map.getZoom(), INITIAL_ZOOM)
+    map.flyTo([lat, lon], targetZoom, { duration: 1.2 })
     if (markerRef.current) map.removeLayer(markerRef.current)
     const marker = L.marker([lat, lon], { icon: makeIcon(L, risk) }).addTo(map)
     if (area) {
@@ -198,8 +227,8 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
         style={{ height: 450, width: '100%', borderRadius: 12 }}
       />
 
-      {/* Radar playback control + live timestamp */}
-      {(radarReady || frameLabel) && (
+      {/* Radar playback control + live timestamp, or the radar-unavailable notice */}
+      {(radarReady || frameLabel || radarError) && (
         <div
           style={{
             position: 'absolute',
@@ -236,30 +265,72 @@ export default function WeatherMap({ lat = 17.385, lon = 78.4867, area, risk }: 
               {playing ? <Pause size={14} /> : <Play size={14} />}
             </button>
           )}
-          <span style={{ fontVariantNumeric: 'tabular-nums' }}>{frameLabel || 'Loading radar…'}</span>
+          <span
+            style={{ fontVariantNumeric: 'tabular-nums', color: radarError ? '#fca5a5' : undefined }}
+            {...(radarError ? { role: 'status' as const } : {})}
+          >
+            {radarError ? 'Radar unavailable' : frameLabel || 'Loading radar…'}
+          </span>
         </div>
       )}
 
-      {/* Legend */}
-      <div style={{
-        position: 'absolute',
-        bottom: 12,
-        left: 12,
-        background: 'rgba(0,0,0,0.8)',
-        borderRadius: 8,
-        padding: '6px 12px',
-        fontSize: 11,
-        color: '#9ca3af',
-        zIndex: 1000,
-        pointerEvents: 'none',
-        display: 'flex',
-        gap: 12,
-        alignItems: 'center',
-      }}>
-        <span style={{ color: '#7dd3fc' }}>● Light</span>
-        <span style={{ color: '#3b82f6' }}>● Moderate</span>
-        <span style={{ color: '#a855f7' }}>● Heavy</span>
-        <span style={{ marginLeft: 8, color: '#6b7280' }}>Radar · zoom max 7</span>
+      {/* Legend — radar intensity ramp + risk marker key */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: 12,
+          left: 12,
+          background: 'rgba(0,0,0,0.8)',
+          borderRadius: 8,
+          padding: '8px 12px',
+          fontSize: 11,
+          color: '#9ca3af',
+          zIndex: 1000,
+          pointerEvents: 'none',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 6,
+        }}
+      >
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          {RADAR_LEGEND.map((item) => (
+            <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <i
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 2,
+                  background: item.color,
+                  display: 'block',
+                }}
+              />
+              {item.label}
+            </span>
+          ))}
+        </div>
+
+        <div style={{ color: '#6b7280', fontSize: 10 }}>
+          Radar detail limited above zoom 6 — tiles are upscaled
+        </div>
+
+        <div style={{ height: 1, background: 'rgba(255,255,255,0.12)' }} />
+
+        <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
+          {RISK_LEGEND.map((item) => (
+            <span key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+              <i
+                style={{
+                  width: 10,
+                  height: 10,
+                  borderRadius: 2,
+                  background: item.color,
+                  display: 'block',
+                }}
+              />
+              {item.label}
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   )

@@ -8,8 +8,15 @@ __v0_jsx-dev-runtime.ts
 
 # Environment variables
 .env*.local
+.env.local
 
 # Common ignores
-node_modules
+node_modules/
 .next/
 .DS_Store
+
+# Generated / local tooling
+tsconfig.tsbuildinfo
+next-env.d.ts
+.kiro/
+.claude/
