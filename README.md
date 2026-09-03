@@ -38,21 +38,29 @@ Needs Node 20+ and pnpm.
 
 ```bash
 pnpm install
-cp .env.example .env.local   # then fill in your keys
 pnpm dev
 ```
 
-The app runs at http://localhost:3000.
-
-You don't need every key to start. Tomorrow.io and OpenWeatherMap cover the core
-weather, Gemini powers the chat, and AccuWeather and you.com are optional — the app
-degrades gracefully when they're missing.
+The app runs at http://localhost:3000. You'll need a `.env.local` with your API keys
+first — see below.
 
 ## Environment variables
 
-`.env.example` lists everything with notes. Server-only keys (weather providers,
-Gemini, you.com) stay on the server; anything prefixed `NEXT_PUBLIC_` gets inlined
-into the client bundle, so don't put a secret behind that prefix.
+Create a `.env.local` in the project root. Server-only keys stay on the server;
+anything prefixed `NEXT_PUBLIC_` is inlined into the client bundle, so don't put a
+secret behind that prefix.
+
+Required:
+
+    OPENWEATHER_API_KEY   # OpenWeatherMap — fallback weather + geocoding
+    TOMORROW_API_KEY      # Tomorrow.io — primary conditions + 90-min nowcast
+    GEMINI_API_KEY        # Google Gemini — chat
+    YOU_API_KEY           # you.com — web-search grounding for chat
+
+Optional (the app runs fine without these):
+
+    ACCUWEATHER_API_KEY             # measured rainfall + official alerts
+    NEXT_PUBLIC_CARTO_BASEMAP_KEY   # cleaner map tiles (else CARTO shows a watermark)
 
 To confirm no server key leaked into the client bundle:
 
