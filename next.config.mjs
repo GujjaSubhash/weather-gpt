@@ -10,7 +10,8 @@ const nextConfig = {
   },
 
   allowedDevOrigins: [
-    "marilyn-ports-went-guests.trycloudflare.com",
+    "*.trycloudflare.com",
+    "cubic-governments-positions-axis.trycloudflare.com",
   ],
 }
 

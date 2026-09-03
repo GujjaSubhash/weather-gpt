@@ -19,7 +19,17 @@ export interface EnvVarSpec {
   name: string;
   scope: EnvScope;
   purpose: string;
-  requiredIn: 'always' | 'production';
+  /**
+   * `always`     — must be present in every mode.
+   * `production` — must be present when NODE_ENV is production.
+   * `optional`   — never required. Present and absent are both valid states,
+   *                in every mode. Used for a credential that enables an extra
+   *                capability but whose absence must leave the product working
+   *                exactly as it does without it. An `optional` spec is still
+   *                declared here so `scope: 'server'` misclassification is
+   *                caught and so the bundle scanner picks the name up.
+   */
+  requiredIn: 'always' | 'production' | 'optional';
   /** Feature that degrades when absent, used to build the startup summary. */
   guards?: EnvGuard;
 }
@@ -36,8 +46,15 @@ export interface EnvVarSpec {
 export const ENV_SCHEMA: readonly EnvVarSpec[] = [
   { name: 'OPENWEATHER_API_KEY', scope: 'server', requiredIn: 'always', guards: 'weather', purpose: 'OWM weather + geocoding fallback' },
   { name: 'TOMORROW_API_KEY', scope: 'server', requiredIn: 'always', guards: 'weather', purpose: 'Primary realtime + nowcast provider' },
+  // Optional second source. Absent is a supported configuration: the weather
+  // route then serves exactly what it served before AccuWeather existed.
+  { name: 'ACCUWEATHER_API_KEY', scope: 'server', requiredIn: 'optional', guards: 'weather', purpose: 'AccuWeather: measured rainfall accumulation, official alerts, cross-check' },
   { name: 'GEMINI_API_KEY', scope: 'server', requiredIn: 'always', guards: 'chat', purpose: 'Chat model' },
   { name: 'YOU_API_KEY', scope: 'server', requiredIn: 'always', guards: 'chat', purpose: 'Web search grounding for chat' },
+  // Public: read client-side by the Leaflet map (lib/env.public.ts). Optional by
+  // construction — the map renders without it (with CARTO's watermark), so its
+  // absence must never fail startup, which is why it is not `always`.
+  { name: 'NEXT_PUBLIC_CARTO_BASEMAP_KEY', scope: 'public', requiredIn: 'optional', purpose: 'CARTO basemap tiles for the live map' },
   { name: 'NEXT_PUBLIC_FIREBASE_API_KEY', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase web app config' },
   { name: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase auth domain' },
   { name: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase project id' },
@@ -92,8 +109,14 @@ function isProduction(): boolean {
   return process.env.NODE_ENV === 'production';
 }
 
-/** True when the spec must be present in the mode the process is running in. */
+/**
+ * True when the spec must be present in the mode the process is running in.
+ * `optional` is never required, so it can never contribute a missing entry to
+ * `validateServerEnv()`, `assertRouteEnv()` or `summarizeEnv()` — which is what
+ * keeps an absent optional credential from failing startup or a request.
+ */
 function isRequiredNow(spec: EnvVarSpec): boolean {
+  if (spec.requiredIn === 'optional') return false;
   return spec.requiredIn === 'always' || isProduction();
 }
 
@@ -165,6 +188,10 @@ export function resetRouteEnvCache(): void {
  * Value-free status line for startup logging, e.g. `weather=ok chat=ok reports=ok`.
  * A guard is `ok` when every variable it guards that is required in the current
  * mode is present, `partial` when some are, `absent` when none are.
+ *
+ * `requiredIn: 'optional'` specs are filtered out by `isRequiredNow`, so an
+ * absent optional credential neither throws here nor downgrades its guard to
+ * `partial`: `weather` stays `ok` with or without ACCUWEATHER_API_KEY.
  */
 export function summarizeEnv(): string {
   const order: EnvGuard[] = [];

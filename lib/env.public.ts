@@ -17,6 +17,9 @@ export const PUBLIC_ENV = Object.freeze({
   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+  // CARTO basemap key for the Leaflet map. Optional: without it the map still
+  // renders, only with CARTO's watermarked tiles.
+  NEXT_PUBLIC_CARTO_BASEMAP_KEY: process.env.NEXT_PUBLIC_CARTO_BASEMAP_KEY,
 });
 
 export type PublicEnv = typeof PUBLIC_ENV;

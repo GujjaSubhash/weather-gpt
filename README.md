@@ -1,75 +1,72 @@
-# WeatherGPT Hyderabad
+# WeatherGPT
 
-Real-time flood alerts and weather intelligence for Hyderabad citizens.
+A weather and flood-risk app for Hyderabad. It shows live conditions, a short-term
+rainfall forecast, and a flood-risk read for wherever you are, plus a chat assistant
+you can ask things like "should I carry an umbrella?" in English, Hindi, or Telugu.
 
-SIH 2026 — Problem Statement SIH26068 — Ministry of Earth Sciences
+Built for Smart India Hackathon 2026 — problem statement SIH26068, Ministry of Earth Sciences.
 
 ## What it does
 
-- Location-based flood risk assessment
-- 90-minute rainfall forecast
-- Road safety alerts
-- Multilingual chat assistant
-- Live radar map
-- Citizen flood reports
+- Current conditions for a searched place or your GPS location
+- A 90-minute, minute-by-minute rainfall nowcast
+- Flood risk shown as Safe / Moderate / High, worked out from live rainfall
+- Official weather alerts (AccuWeather / IMD) when there are any
+- A live radar map so you can see rain moving in real time
+- A chat assistant that replies in whatever language you type
 
-Available in English, Hindi and Telugu.
+It doesn't guess things it can't measure. There's no road, traffic, or drainage feed,
+so it never claims any — a missing value shows up as "unavailable" instead of a made-up
+number. Flood risk is a model estimate from rainfall, not a ground measurement, and the
+UI says so.
 
-## Tech stack
+## Stack
 
-| Layer | Technology |
-| --- | --- |
-| Framework | Next.js 16 (App Router) |
-| Language | TypeScript |
-| Styling | Tailwind CSS v4 |
-| Weather (primary) | Tomorrow.io — current conditions and minute-level nowcast |
-| Weather (fallback) | OpenWeatherMap — weather fallback and geocoding |
-| Chat | Google Gemini |
-| Search grounding | you.com |
-| Citizen reports | Firebase Firestore |
-| Map | Leaflet |
-| Radar tiles | RainViewer |
-| Basemap tiles | CARTO |
+- Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4
+- Weather: Tomorrow.io (primary + nowcast), OpenWeatherMap (fallback + geocoding),
+  AccuWeather (measured rain + official alerts)
+- Map: Leaflet, CARTO basemap, RainViewer radar tiles
+- Chat: Google Gemini, grounded with you.com web search
+- Runs on any Node host or serverless (deploys cleanly to Vercel)
 
-## How to run
+Provider keys are read server-side inside the API routes (`app/api/weather`,
+`app/api/chat`) and are never sent to the browser.
 
-Clone the repository, copy `.env.example` to `.env.local` and fill in the keys, then:
+## Running it locally
+
+Needs Node 20+ and pnpm.
 
 ```bash
 pnpm install
-pnpm run dev
+cp .env.example .env.local   # then fill in your keys
+pnpm dev
 ```
 
-Open http://localhost:3000.
+The app runs at http://localhost:3000.
 
-```bash
-pnpm run build         # production build
-pnpm run scan:secrets  # verify no server credential reached the client bundle
-```
+You don't need every key to start. Tomorrow.io and OpenWeatherMap cover the core
+weather, Gemini powers the chat, and AccuWeather and you.com are optional — the app
+degrades gracefully when they're missing.
 
 ## Environment variables
 
-Every variable below is defined in `.env.example`.
+`.env.example` lists everything with notes. Server-only keys (weather providers,
+Gemini, you.com) stay on the server; anything prefixed `NEXT_PUBLIC_` gets inlined
+into the client bundle, so don't put a secret behind that prefix.
 
-| Variable | Scope | Purpose |
-| --- | --- | --- |
-| `OPENWEATHER_API_KEY` | server-only | OpenWeatherMap weather fallback and forward/reverse geocoding |
-| `TOMORROW_API_KEY` | server-only | Tomorrow.io primary current conditions and minute-level rainfall nowcast |
-| `GEMINI_API_KEY` | server-only | Google Gemini model powering the chat assistant |
-| `YOU_API_KEY` | server-only | you.com search, used to ground chat answers in live web results |
-| `NEXT_PUBLIC_FIREBASE_API_KEY` | public | Firebase web app config |
-| `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN` | public | Firebase auth domain |
-| `NEXT_PUBLIC_FIREBASE_PROJECT_ID` | public | Firebase project id |
-| `NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET` | public | Firebase storage bucket |
-| `NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID` | public | Firebase messaging sender id |
-| `NEXT_PUBLIC_FIREBASE_APP_ID` | public | Firebase web app id |
+To confirm no server key leaked into the client bundle:
 
-`NEXT_PUBLIC_*` variables are inlined into the browser bundle by Next.js and must never hold a secret; server-only variables are read exclusively in server routes and never reach the client.
+```bash
+pnpm build
+pnpm scan:secrets
+```
 
-## Data sources and limitations
+## Demo mode
 
-- Weather, rainfall intensity and the 90-minute outlook come from live provider APIs.
-- Radar imagery is RainViewer. Radar tiles are not produced above zoom level 6, so radar detail is upscaled when zoomed in further.
-- Road, traffic and drainage conditions are not available. The app has no data source for them and does not infer them.
-- Flood risk is a model-derived estimate from rainfall data, not an observed measurement.
-- Citizen reports require Cloud Firestore to be enabled on the Firebase project.
+For a live demo you can force a scenario instead of waiting on the real weather:
+
+    /?demo=heavy_rain
+    /?demo=moderate_rain
+    /?demo=clear
+
+These are labelled as simulated in the UI.
