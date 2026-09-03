@@ -55,12 +55,6 @@ export const ENV_SCHEMA: readonly EnvVarSpec[] = [
   // construction — the map renders without it (with CARTO's watermark), so its
   // absence must never fail startup, which is why it is not `always`.
   { name: 'NEXT_PUBLIC_CARTO_BASEMAP_KEY', scope: 'public', requiredIn: 'optional', purpose: 'CARTO basemap tiles for the live map' },
-  { name: 'NEXT_PUBLIC_FIREBASE_API_KEY', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase web app config' },
-  { name: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase auth domain' },
-  { name: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase project id' },
-  { name: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase storage bucket' },
-  { name: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase messaging sender id' },
-  { name: 'NEXT_PUBLIC_FIREBASE_APP_ID', scope: 'public', requiredIn: 'always', guards: 'reports', purpose: 'Firebase web app id' },
 ] as const;
 
 const PUBLIC_PREFIX = 'NEXT_PUBLIC_';
