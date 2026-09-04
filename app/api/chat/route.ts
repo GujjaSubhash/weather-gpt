@@ -7,8 +7,9 @@ const systemInstruction = `You are WeatherGPT — a friendly, knowledgeable weat
 const MESSAGE_MAX = 2000;
 /** Conversation turns forwarded to the model, newest last. */
 const HISTORY_MAX = 10;
-/** Ceiling on the model call before the client gets a 504 instead of hanging. */
-const MODEL_TIMEOUT_MS = 20_000;
+/** Ceiling on the model call before the client gets a 504 instead of hanging.
+ *  Kept under Vercel's 30s function limit while leaving headroom for a slow model. */
+const MODEL_TIMEOUT_MS = 28_000;
 /** Ceiling on the (optional) grounding search. */
 const SEARCH_TIMEOUT_MS = 6_000;
 
