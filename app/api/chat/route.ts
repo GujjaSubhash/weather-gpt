@@ -289,7 +289,10 @@ export async function POST(req: NextRequest) {
   try {
     const genAI = new GoogleGenerativeAI(apiKey);
     const model = genAI.getGenerativeModel({
-      model: 'gemini-3.5-flash-lite',
+      // gemini-3.5-flash: stable and consistently ~3s. The -lite variant it
+      // replaced was intermittently taking 20-40s and blowing MODEL_TIMEOUT_MS,
+      // which surfaced to users as "the assistant took too long".
+      model: 'gemini-3.5-flash',
       systemInstruction: systemInstruction,
     });
 
