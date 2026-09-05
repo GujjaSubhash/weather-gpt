@@ -81,6 +81,14 @@ type DemoCard = {
   tint: 'high' | 'moderate' | 'safe'
   alert: DemoAlertLevel | null
 }
+/*
+ * Master switch for the demo control. Set to `true` to show the "Demo" pill in
+ * the header again (e.g. for a live presentation). While `false`, the button is
+ * absent everywhere and a normal visitor never sees demo mode — all the picker,
+ * scenario and API plumbing below stays intact, just unreachable from the UI.
+ */
+const DEMO_ENABLED = false
+
 const DEMO_CARDS: DemoCard[] = [
   {
     id: 'heavy_rain',
@@ -714,7 +722,7 @@ export default function Page() {
    * exits to live data. It is the only thing that drops the pin, which is why the
    * pin can be trusted to hold everywhere else.
    */
-  const demoControl = demoScenario ? (
+  const demoControl = !DEMO_ENABLED ? null : demoScenario ? (
     <div className="demo-active">
       <button
         type="button"
