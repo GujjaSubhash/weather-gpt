@@ -1,6 +1,7 @@
 import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { GlassFilter } from '@/components/ui/liquid-glass-button'
 import './globals.css'
 
 /*
@@ -42,7 +43,13 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`bg-[#0D0D0F] ${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}{process.env.NODE_ENV === 'production' && <Analytics />}</body>
+      <body>
+        {children}
+        {/* One document-wide instance of the SVG filter the glass buttons
+            reference. Rendering it per button would duplicate its element id. */}
+        <GlassFilter />
+        {process.env.NODE_ENV === 'production' && <Analytics />}
+      </body>
     </html>
   )
 }

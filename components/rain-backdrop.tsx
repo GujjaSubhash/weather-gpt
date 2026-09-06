@@ -25,7 +25,17 @@ function prefersReducedMotion(): boolean {
  * Motion is stilled under prefers-reduced-motion: one static frame is drawn
  * instead, so the rain is still *shown*, it just does not move.
  */
-export default function RainBackdrop() {
+type RainBackdropProps = {
+  /**
+   * Streak colour as an `R,G,B` channel triplet (alpha is applied per streak).
+   * Defaults to white, which only reads on a dark surface — the bright
+   * onboarding screen passes a dark tint so the rain stays visible against it.
+   */
+  color?: string
+  className?: string
+}
+
+export default function RainBackdrop({ color = '255,255,255', className }: RainBackdropProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
 
   useEffect(() => {
@@ -82,7 +92,7 @@ export default function RainBackdrop() {
           s.x += s.speed * SLANT
           if (s.y - s.len > h) reset(s, w, h, false)
         }
-        ctx.strokeStyle = `rgba(255,255,255,${(MAX_ALPHA * s.alpha).toFixed(3)})`
+        ctx.strokeStyle = `rgba(${color},${(MAX_ALPHA * s.alpha).toFixed(3)})`
         ctx.beginPath()
         ctx.moveTo(s.x, s.y)
         ctx.lineTo(s.x - s.len * SLANT, s.y - s.len)
@@ -118,7 +128,13 @@ export default function RainBackdrop() {
       cancelAnimationFrame(raf)
       ro.disconnect()
     }
-  }, [])
+  }, [color])
 
-  return <canvas ref={canvasRef} className="rain-backdrop" aria-hidden="true" />
+  return (
+    <canvas
+      ref={canvasRef}
+      className={['rain-backdrop', className].filter(Boolean).join(' ')}
+      aria-hidden="true"
+    />
+  )
 }

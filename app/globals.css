@@ -58,14 +58,10 @@
 .onboarding-entry .onboarding-ask:focus-within{border-color:#3f3f3f;box-shadow:none}
 .onboarding-entry .onboarding-ask input{height:46px;color:#fff;font-size:15px}
 .onboarding-entry .onboarding-ask input::placeholder{color:#5f5f5f}
-/* The mascot is the one saturated element on an otherwise monochrome screen,
-   and here it always shows its neutral idle variant (no reading is loaded yet),
-   so it is desaturated to sit with everything else. The dashboard's
-   weather-reactive mascot keeps its full colour. */
-.onboarding-entry .chat-input-bot{opacity:.7;filter:saturate(.3)}
-.onboarding-entry .chat-send{min-height:36px;padding:0 14px;border:1px solid #2f2f2f;border-radius:9px;color:var(--muted);background:transparent;font-size:14px;font-weight:500;letter-spacing:-.008em}
-.onboarding-entry .chat-send:hover:not(:disabled){border-color:#454545;color:#fff}
-.onboarding-entry .chat-send:disabled{opacity:.45}
+/* The mascot and the bordered send button that used to live in this form are
+   gone — the mascot now appears only in the chat intro header, and both send
+   controls are MetalButton, which carries its own geometry and disabled state.
+   Their rules are deleted rather than left here to fight the component. */
 
 /* Soft suggestions, not buttons: hairline border, no fill, small light text.
    Held on one horizontal row under the input at every width — narrow screens
@@ -354,4 +350,111 @@ footer{padding:26px 0 34px;font-size:12px;font-weight:400;line-height:1.6;letter
   .condition-list div,.condition-list b{font-size:13px}
   .info-list div,.info-list b{font-size:12.5px}
   footer{font-size:11.5px}
+}
+
+/* ============================================================================
+   ANIMATED AURORA BACKDROP + GLASS SURFACES
+   ----------------------------------------------------------------------------
+   Appended last on purpose. This file is unlayered and flat-specificity, so
+   source order decides — everything here is meant to win over the dark-screen
+   rules above without needing !important or inflated selectors.
+   ========================================================================== */
+
+/* The backdrop root. It always carries a CSS gradient (set inline by
+   WeatherAurora), and the WebGL canvas — when there is one — paints on top of
+   that. So the fallback is not an error path: it is the base layer, and the only
+   layer under reduced motion or a browser without WebGL. */
+.weather-aurora{position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background-size:cover;background-position:center}
+.weather-aurora-canvas{position:absolute;inset:0}
+
+/* Dashboard band: sits behind the header + hero and fades out, so the gradient
+   resolves into the flat page background instead of ending on a hard line.
+   Height is generous — the mask, not the box, decides where it visually stops. */
+.site-shell{position:relative}
+.hero-aurora{height:min(780px,86vh);inset:0 0 auto 0;opacity:.85;-webkit-mask-image:linear-gradient(to bottom,#000 42%,transparent 100%);mask-image:linear-gradient(to bottom,#000 42%,transparent 100%)}
+/* Lift the real content above the band. */
+.site-shell>.topbar,.site-shell>.hero{position:relative;z-index:1}
+
+/* ── Bright onboarding screen ────────────────────────────────────────────────
+   Every colour on this screen was tuned for a #0a0a0a background, so going
+   bright means restating all of them. Dark-on-light throughout. */
+.onboarding-lit{background:transparent;color:#0f172a}
+.onboarding-lit .onboarding-inner{position:relative;z-index:2}
+.onboarding-lit h1{color:#0b1220;text-shadow:0 1px 0 rgba(255,255,255,.45)}
+.onboarding-lit .onboarding-tagline{color:#293548}
+.onboarding-lit small{color:#3d4a5c}
+.onboarding-lit .kicker,.onboarding-lit .label{color:#41506a}
+.onboarding-lit .location-icon{color:#14203a}
+.onboarding-lit .location-wait{color:#26334a}
+.onboarding-lit .onboarding-inner>p{color:#2c3a4e}
+
+/* Divider hairlines: the dark-screen values disappear on a light background. */
+.onboarding-lit .onboarding-divider{color:#4a5870}
+.onboarding-lit .onboarding-divider::before,.onboarding-lit .onboarding-divider::after{background:linear-gradient(90deg,transparent,rgba(15,23,42,.22),transparent)}
+
+/* Language pills as light glass. */
+.onboarding-lit .language-pills{background:rgba(255,255,255,.42);border-color:rgba(15,23,42,.14);backdrop-filter:blur(14px) saturate(1.3)}
+.onboarding-lit .language-pills button{color:#33415a}
+.onboarding-lit .language-pills button:hover{color:#0f172a;background:rgba(255,255,255,.55)}
+.onboarding-lit .language-pills button.active{color:#0b1220;background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(15,23,42,.14)}
+
+/* Suggestion chips: translucent white glass, dark label. */
+.onboarding-lit .onboarding-suggestions button{color:#25334a;border-color:rgba(15,23,42,.16);background:rgba(255,255,255,.5);backdrop-filter:blur(12px) saturate(1.25);box-shadow:0 1px 3px rgba(15,23,42,.07)}
+.onboarding-lit .onboarding-suggestions button:hover{color:#0b1220;border-color:rgba(15,23,42,.3);background:rgba(255,255,255,.72);transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.12)}
+
+/* ── The dark glass pill ─────────────────────────────────────────────────────
+   Shared by the onboarding ask box and the dashboard chat input: one recipe, so
+   the control a visitor first meets is the same one they keep using.
+   backdrop-filter is what makes it read as glass rather than a flat dark box —
+   it samples the moving gradient behind it.
+
+   Declared UNPREFIXED ONLY. Lightning CSS (Tailwind v4's bundler) adds the
+   -webkit- prefix itself, and if the prefixed form is written by hand it treats
+   that as the authored value and drops the standard property — which silently
+   removes the blur in every non-WebKit engine. */
+.onboarding-lit .onboarding-ask,.chat-panel .chat-input{
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.1);
+  border-top-color:rgba(255,255,255,.22);
+  background:rgba(11,15,22,.72);
+  backdrop-filter:blur(20px) saturate(1.4);
+  box-shadow:0 18px 44px -18px rgba(6,10,18,.55),0 2px 10px rgba(6,10,18,.28),inset 0 1px 0 rgba(255,255,255,.1);
+  padding:7px 8px 7px 20px;
+  gap:10px;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+.onboarding-lit .onboarding-ask input,.chat-panel .chat-input input{color:#f4f7fb}
+/* MetalButton ships `disabled:cursor-default`, but Tailwind utilities live in
+   @layer utilities and the base stylesheet's unlayered `button{cursor:pointer}`
+   outranks every layered rule no matter its specificity. Restated here, where
+   the rule is unlayered too and source order decides. */
+.onboarding-lit .onboarding-ask button:disabled,.chat-panel .chat-input button:disabled{cursor:default}
+.onboarding-lit .onboarding-ask input::placeholder,.chat-panel .chat-input input::placeholder{color:rgba(226,232,240,.5)}
+.onboarding-lit .onboarding-ask:focus-within,.chat-panel .chat-input:focus-within{
+  border-color:rgba(255,255,255,.26);
+  background:rgba(11,15,22,.8);
+  box-shadow:0 22px 52px -18px rgba(6,10,18,.6),0 0 0 3px rgba(125,196,255,.16),inset 0 1px 0 rgba(255,255,255,.14);
+}
+
+/* The pill supplies its own rounding and padding now, so the dark-screen
+   geometry rules for the onboarding ask box would only fight it. */
+.onboarding-lit .onboarding-ask{width:min(100%,620px);margin-inline:auto}
+
+/* Liquid-glass CTAs replace the old bordered buttons; the row just spaces them. */
+.onboarding-lit .onboarding-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
+.onboarding-lit .onboarding-actions>button{color:#0f172a;font-weight:530}
+
+@media (max-width:760px){
+  .onboarding-lit .onboarding-ask,.chat-panel .chat-input{padding:6px 7px 6px 16px}
+  .onboarding-lit .onboarding-actions{flex-direction:column;align-items:stretch;width:min(100%,340px);margin-inline:auto}
+  .onboarding-lit .onboarding-actions>button{width:100%}
+  .hero-aurora{height:min(560px,72vh)}
+}
+
+/* The gradient canvas is already suppressed in JS under reduced motion (see
+   WeatherAurora), which leaves the static fallback. This covers the CSS-only
+   pieces: nothing here should animate or lift on hover. */
+@media (prefers-reduced-motion:reduce){
+  .onboarding-lit .onboarding-suggestions button:hover{transform:none}
+  .onboarding-lit .onboarding-ask,.chat-panel .chat-input{transition:none}
 }

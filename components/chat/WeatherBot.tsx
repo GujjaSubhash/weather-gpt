@@ -12,7 +12,7 @@ type WeatherBotProps = {
   className?: string
 }
 
-type Variant = 'clear' | 'cloud' | 'rain' | 'storm'
+export type Variant = 'clear' | 'cloud' | 'rain' | 'storm'
 
 /**
  * Picks the mascot's mood from the live reading. A positive rainfall is a real
@@ -20,8 +20,11 @@ type Variant = 'clear' | 'cloud' | 'rain' | 'storm'
  * otherwise plain rain). With no rain we fall back to the condition text, and
  * finally to 'clear' — which is also what the onboarding screen gets before any
  * reading exists, giving it a calm idle bot rather than a blank one.
+ *
+ * Exported because WeatherAurora picks its gradient palette from the same rule —
+ * the mascot's mood and the backdrop's colour should never disagree.
  */
-function variantOf(condition?: string, rain?: number): Variant {
+export function variantOf(condition?: string, rain?: number): Variant {
   const c = condition ?? ''
   if (typeof rain === 'number' && rain > 0) {
     return /storm|thunder|lightning/i.test(c) ? 'storm' : 'rain'

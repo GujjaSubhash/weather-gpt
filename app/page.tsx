@@ -10,11 +10,12 @@ import {
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import ChatPanel from '@/components/chat/ChatPanel'
-import WeatherBot from '@/components/chat/WeatherBot'
 import type { ChatContext } from '@/components/chat/WeatherContextStrip'
 import AlertSection, { type OfficialAlert } from '@/components/weather/AlertSection'
 import ClimateCard from '@/components/weather/ClimateCard'
 import RainBackdrop from '@/components/rain-backdrop'
+import WeatherAurora from '@/components/backdrop/WeatherAurora'
+import { LiquidButton, MetalButton } from '@/components/ui/liquid-glass-button'
 import { playDemoAlert, type DemoAlertLevel } from '@/lib/demo-alert'
 
 const WeatherMap = dynamic(() => import('@/components/weather-map'), { ssr: false })
@@ -806,13 +807,18 @@ export default function Page() {
   ) : null
 
   if (locating) {
+    // Lit like the welcome screen it follows. Without this the sequence would
+    // flash bright → black → dashboard while the fix is being acquired.
     return (
-      <main className="onboarding">
-        <div className="location-icon loading-orbit"><LocateFixed /></div>
-        <Label>{t.aiKicker}</Label>
-        <h1>WeatherGPT</h1>
-        <div className="location-wait"><span className="loading-spinner" />{t.locationWait}</div>
-        <p>{t.locationSub}</p>
+      <main className="onboarding onboarding-lit">
+        <WeatherAurora condition={weather?.condition} rain={weather?.rain} tone="bright" />
+        <div className="onboarding-inner">
+          <div className="location-icon loading-orbit"><LocateFixed /></div>
+          <Label>{t.aiKicker}</Label>
+          <h1>WeatherGPT</h1>
+          <div className="location-wait"><span className="loading-spinner" />{t.locationWait}</div>
+          <p>{t.locationSub}</p>
+        </div>
       </main>
     )
   }
@@ -823,8 +829,10 @@ export default function Page() {
          first thing a visitor can do is put a question to the assistant. The
          two location buttons still work exactly as before — they are the
          secondary path, not the only one. */
-      <main className="onboarding onboarding-entry">
-        <RainBackdrop />
+      <main className="onboarding onboarding-entry onboarding-lit">
+        <WeatherAurora condition={weather?.condition} rain={weather?.rain} tone="bright" />
+        {/* Dark streaks: the default white ones are invisible on a bright sky. */}
+        <RainBackdrop color="30,41,59" />
         {/* Language is chosen here, before anything is asked — the dashboard is
             not the first place a Hindi or Telugu speaker should find it. Same
             control as the topbar's, so switching persists into the dashboard.
@@ -855,22 +863,21 @@ export default function Page() {
             className="chat-input onboarding-ask"
             onSubmit={(e) => { e.preventDefault(); askAndBegin(onboardingAsk) }}
           >
-            <WeatherBot condition={weather?.condition} rain={weather?.rain} size={26} className="chat-input-bot" />
             <input
               value={onboardingAsk}
               onChange={(e) => setOnboardingAsk(e.target.value)}
               placeholder={t.chatPlaceholder}
               aria-label={t.ask}
             />
-            <button
+            <MetalButton
               type="submit"
-              className="chat-send"
               aria-label={t.chatSend}
               disabled={!onboardingAsk.trim()}
+              className="h-9 gap-1.5 rounded-full px-3.5 text-xs"
             >
               <Send size={14} />
               <span>{t.chatSend}</span>
-            </button>
+            </MetalButton>
           </form>
 
           {/* Same prompt list the assistant offers, so the gate promises nothing
@@ -884,12 +891,12 @@ export default function Page() {
           <div className="onboarding-divider"><span>{t.orLabel}</span></div>
 
           <div className="onboarding-actions">
-            <button className="button secondary" onClick={() => begin()}>
+            <LiquidButton type="button" size="lg" onClick={() => begin()}>
               <LocateFixed size={16} />{t.allow}
-            </button>
-            <button className="button secondary" onClick={() => begin(true)}>
+            </LiquidButton>
+            <LiquidButton type="button" size="lg" onClick={() => begin(true)}>
               <Search size={16} />{t.manual}
-            </button>
+            </LiquidButton>
           </div>
           <small><ShieldCheck size={13} />{t.locationPrivacy}</small>
         </div>
@@ -947,6 +954,14 @@ export default function Page() {
 
   return (
     <main className="site-shell">
+      {/* A deep wash behind the header and hero only, masked so it dissolves into
+          the flat #0a0a0a the rest of the dashboard sits on. */}
+      <WeatherAurora
+        condition={weather?.condition}
+        rain={weather?.rain}
+        tone="deep"
+        className="hero-aurora"
+      />
       <header className="topbar">
         {/* The logo is Home: it returns to the ask-first welcome screen, so a
             visitor who allowed location or searched is never stuck away from the

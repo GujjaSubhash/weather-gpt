@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { Send } from 'lucide-react'
 import WeatherContextStrip, { type ChatContext } from './WeatherContextStrip'
 import WeatherBot from './WeatherBot'
+import { MetalButton } from '@/components/ui/liquid-glass-button'
 
 export type ChatPanelMessage = { role: 'user' | 'bot'; text: string }
 
@@ -161,10 +162,8 @@ export default function ChatPanel({
         <WeatherContextStrip context={context} label={copy.contextLabel} />
 
         {/* Single-line input inside a form, so Enter submits and there is no
-            Shift+Enter newline case to handle. The mascot on the left reacts to
-            the live conditions, like a small companion on the search bar. */}
+            Shift+Enter newline case to handle. */}
         <form className="chat-input" onSubmit={onSubmit}>
-          <WeatherBot condition={context?.condition} rain={context?.rain} size={26} className="chat-input-bot" />
           <input
             value={input}
             onChange={(e) => onInputChange(e.target.value)}
@@ -172,10 +171,15 @@ export default function ChatPanel({
             aria-label={copy.title}
             disabled={loading}
           />
-          <button type="submit" className="chat-send" aria-label={copy.send} disabled={!canSend}>
+          <MetalButton
+            type="submit"
+            aria-label={copy.send}
+            disabled={!canSend}
+            className="h-9 gap-1.5 rounded-full px-3.5 text-xs"
+          >
             <Send size={14} />
             <span>{copy.send}</span>
-          </button>
+          </MetalButton>
         </form>
       </div>
     </>
