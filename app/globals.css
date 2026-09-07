@@ -449,6 +449,14 @@ footer{padding:26px 0 34px;font-size:12px;font-weight:400;line-height:1.6;letter
   .onboarding-lit .onboarding-actions{flex-direction:column;align-items:stretch;width:min(100%,340px);margin-inline:auto}
   .onboarding-lit .onboarding-actions>button{width:100%}
   .hero-aurora{height:min(560px,72vh)}
+
+  /* The chip row scrolls sideways here rather than stacking, so the third chip
+     starts off-screen. The dark screen hinted at that by fading the row's right
+     edge to transparent, but these chips are translucent white now — a fade to
+     transparent on a bright gradient is invisible, which left the scroll with no
+     affordance at all. Taper the opacity instead: the last chip reads as dimmed
+     and clipped, which is the cue that the row continues. */
+  .onboarding-lit .onboarding-suggestions{-webkit-mask-image:linear-gradient(90deg,#000 72%,rgba(0,0,0,.25) 100%);mask-image:linear-gradient(90deg,#000 72%,rgba(0,0,0,.25) 100%)}
 }
 
 /* The gradient canvas is already suppressed in JS under reduced motion (see
