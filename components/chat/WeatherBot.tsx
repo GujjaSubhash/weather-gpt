@@ -36,7 +36,7 @@ export function variantOf(condition?: string, rain?: number): Variant {
 }
 
 /**
- * A small weather-reactive robot that sits by the chat input, like a friendly
+ * A small weather-reactive robot that heads the chat panel, like a friendly
  * companion. It idle-bobs and breathes, and wears a weather effect that mirrors
  * the current conditions: a warm glow when clear, a drifting cloud when
  * overcast, falling drops when it rains, a lightning flicker in a storm. All the
