@@ -27,6 +27,9 @@ UI says so.
   AccuWeather (measured rain + official alerts)
 - Map: Leaflet, CARTO basemap, RainViewer radar tiles
 - Chat: Google Gemini, grounded with you.com web search
+- Backdrop: a WebGL mesh gradient whose palette tracks the live condition, code-split
+  out of the initial bundle and backed by a matching CSS gradient — so no-WebGL and
+  reduced-motion still get the right colours, just static
 - Runs on any Node host or serverless (deploys cleanly to Vercel)
 
 Provider keys are read server-side inside the API routes (`app/api/weather`,
