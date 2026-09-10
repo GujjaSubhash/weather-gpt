@@ -1,0 +1,322 @@
+{
+  "schemaVersion": 1,
+  "modelVersion": "1.0.0",
+  "trainedAt": "2026-09-09T13:59:22Z",
+  "kind": "logistic_regression",
+  "note": "Standardize each feature with (x - mean) / scale, dot with coefficients, add intercept, apply the logistic function. No ML runtime required.",
+  "features": [
+    "rain_1h",
+    "rain_3h",
+    "rain_6h",
+    "rain_24h",
+    "rain_72h",
+    "rain_7d",
+    "max_1h_in_24h",
+    "wet_hours_24h",
+    "api_30d"
+  ],
+  "featureLabels": {
+    "rain_1h": "rainfall in the last hour",
+    "rain_3h": "rainfall over 3 hours",
+    "rain_6h": "rainfall over 6 hours",
+    "rain_24h": "rainfall over 24 hours",
+    "rain_72h": "rainfall over 3 days",
+    "rain_7d": "rainfall over 7 days",
+    "max_1h_in_24h": "peak hourly downpour",
+    "wet_hours_24h": "hours of rain in the last day",
+    "api_30d": "how saturated the ground already is"
+  },
+  "mean": [
+    0.077459,
+    0.263356,
+    0.523791,
+    2.095163,
+    6.28549,
+    14.666143,
+    0.544931,
+    2.358277,
+    20.063137
+  ],
+  "scale": [
+    0.373215,
+    1.057909,
+    1.983691,
+    6.063007,
+    14.098128,
+    26.227987,
+    1.190511,
+    4.867419,
+    27.960282
+  ],
+  "coefficients": [
+    0.254564,
+    -0.018149,
+    0.207801,
+    -0.088212,
+    -0.026707,
+    -0.195079,
+    0.159305,
+    0.610498,
+    0.990902
+  ],
+  "intercept": -1.110533,
+  "thresholds": {
+    "moderate": 0.4364,
+    "high": 0.9175
+  },
+  "training": {
+    "location": {
+      "latitude": 17.385,
+      "longitude": 78.4867
+    },
+    "trainYears": [
+      2000,
+      2014
+    ],
+    "validYears": [
+      2015,
+      2019
+    ],
+    "testYears": [
+      2020,
+      2024
+    ],
+    "sampleStrideHours": 6,
+    "labelDefinition": "GloFAS river discharge >= its own trailing p98 (over the previous 10 years, lagged one day) within 2 days",
+    "apiDecay": 0.9,
+    "apiWindowDays": 30
+  },
+  "testMetrics": {
+    "prAuc": 0.5983,
+    "rocAuc": 0.9447,
+    "highPrecision": 0.6109,
+    "highRecall": 0.4966
+  },
+  "testVectors": [
+    {
+      "at": "2020-04-11T06:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.2,
+        "rain_7d": 0.3,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 0.412286
+      },
+      "expectedProbability": 0.106216908
+    },
+    {
+      "at": "2021-02-15T00:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.0,
+        "rain_7d": 0.0,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 0.0
+      },
+      "expectedProbability": 0.105082961
+    },
+    {
+      "at": "2021-06-04T12:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 1.5,
+        "rain_72h": 16.2,
+        "rain_7d": 17.8,
+        "max_1h_in_24h": 0.3,
+        "wet_hours_24h": 5.0,
+        "api_30d": 18.530366
+      },
+      "expectedProbability": 0.268370218
+    },
+    {
+      "at": "2021-07-02T06:00",
+      "features": {
+        "rain_1h": 2.9,
+        "rain_3h": 3.8,
+        "rain_6h": 7.9,
+        "rain_24h": 10.4,
+        "rain_72h": 10.5,
+        "rain_7d": 22.7,
+        "max_1h_in_24h": 2.9,
+        "wet_hours_24h": 11.0,
+        "api_30d": 17.81641
+      },
+      "expectedProbability": 0.934473822
+    },
+    {
+      "at": "2021-07-22T00:00",
+      "features": {
+        "rain_1h": 4.7,
+        "rain_3h": 15.9,
+        "rain_6h": 33.3,
+        "rain_24h": 48.4,
+        "rain_72h": 51.4,
+        "rain_7d": 77.7,
+        "max_1h_in_24h": 7.9,
+        "wet_hours_24h": 24.0,
+        "api_30d": 97.106399
+      },
+      "expectedProbability": 0.99996983
+    },
+    {
+      "at": "2022-11-21T12:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.0,
+        "rain_7d": 0.0,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 0.18823
+      },
+      "expectedProbability": 0.105711941
+    },
+    {
+      "at": "2023-02-14T06:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.0,
+        "rain_7d": 0.0,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 0.0
+      },
+      "expectedProbability": 0.105082961
+    },
+    {
+      "at": "2023-06-02T06:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 2.1,
+        "rain_7d": 20.0,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 25.295633
+      },
+      "expectedProbability": 0.198094378
+    },
+    {
+      "at": "2023-09-29T18:00",
+      "features": {
+        "rain_1h": 15.6,
+        "rain_3h": 16.5,
+        "rain_6h": 17.4,
+        "rain_24h": 41.0,
+        "rain_72h": 51.9,
+        "rain_7d": 72.8,
+        "max_1h_in_24h": 15.6,
+        "wet_hours_24h": 12.0,
+        "api_30d": 56.119406
+      },
+      "expectedProbability": 0.999999433
+    },
+    {
+      "at": "2023-11-17T00:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.0,
+        "rain_7d": 0.0,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 11.687166
+      },
+      "expectedProbability": 0.150870237
+    },
+    {
+      "at": "2024-03-02T00:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.0,
+        "rain_7d": 0.6,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 0.36658
+      },
+      "expectedProbability": 0.105887717
+    },
+    {
+      "at": "2024-05-10T06:00",
+      "features": {
+        "rain_1h": 15.3,
+        "rain_3h": 15.3,
+        "rain_6h": 15.3,
+        "rain_24h": 16.1,
+        "rain_72h": 18.4,
+        "rain_7d": 18.5,
+        "max_1h_in_24h": 15.3,
+        "wet_hours_24h": 2.0,
+        "api_30d": 3.643352
+      },
+      "expectedProbability": 0.999991322
+    },
+    {
+      "at": "2024-05-14T18:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.5,
+        "rain_24h": 0.5,
+        "rain_72h": 7.2,
+        "rain_7d": 32.6,
+        "max_1h_in_24h": 0.5,
+        "wet_hours_24h": 1.0,
+        "api_30d": 24.957841
+      },
+      "expectedProbability": 0.218204179
+    },
+    {
+      "at": "2024-06-25T06:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.1,
+        "rain_72h": 17.9,
+        "rain_7d": 28.7,
+        "max_1h_in_24h": 0.1,
+        "wet_hours_24h": 0.0,
+        "api_30d": 60.383985
+      },
+      "expectedProbability": 0.440916636
+    },
+    {
+      "at": "2024-09-19T12:00",
+      "features": {
+        "rain_1h": 0.0,
+        "rain_3h": 0.0,
+        "rain_6h": 0.0,
+        "rain_24h": 0.0,
+        "rain_72h": 0.2,
+        "rain_7d": 0.9,
+        "max_1h_in_24h": 0.0,
+        "wet_hours_24h": 0.0,
+        "api_30d": 46.495418
+      },
+      "expectedProbability": 0.377241596
+    }
+  ]
+}

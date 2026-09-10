@@ -1,24 +1,41 @@
 'use client'
 
-import { useEffect, useRef, useState, type FormEvent } from 'react'
-import { Send } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
+import { Send, Mic, Square, Volume2, VolumeX } from 'lucide-react'
 import WeatherContextStrip, { type ChatContext } from './WeatherContextStrip'
-import WeatherBot from './WeatherBot'
 import { MetalButton } from '@/components/ui/liquid-glass-button'
+import {
+  canSpeak,
+  isListeningSupported,
+  listenOnce,
+  onVoicesReady,
+  speak,
+  stopSpeaking,
+  type SpeechLang,
+  type SpeechRecognitionHandle,
+} from '@/lib/speech'
 
 export type ChatPanelMessage = { role: 'user' | 'bot'; text: string }
 
 export type ChatPanelCopy = {
-  assistant: string
+  /**
+   * Accessible name for the transcript and the input. The visible heading now
+   * belongs to whatever surface hosts the panel (the Dynamic Island), so this is
+   * the only copy the panel needs to name itself.
+   */
   title: string
-  subtitle: string
   placeholder: string
   sending: string
-  /** Shown while only the seeded greeting exists, so the scope is obvious. */
-  emptyHint: string
   contextLabel: string
   /** Accessible name and visible label for the submit control. */
   send: string
+  /** Voice controls. See lib/speech.ts for why these can go unrendered. */
+  voiceListen: string
+  voiceListening: string
+  voiceSpeak: string
+  voiceStopSpeaking: string
+  voiceDenied: string
+  voiceNoSpeech: string
 }
 
 type ChatPanelProps = {
@@ -30,6 +47,8 @@ type ChatPanelProps = {
   /** The active language slice, so nothing here needs its own dictionary. */
   copy: ChatPanelCopy
   context?: ChatContext
+  /** Drives which voice speaks and which language is dictated. */
+  lang: SpeechLang
 }
 
 /*
@@ -63,15 +82,103 @@ export default function ChatPanel({
   onSubmit,
   copy,
   context,
+  lang,
 }: ChatPanelProps) {
   const [reveal, setReveal] = useState<{ index: number; chars: number } | null>(null)
   const messagesRef = useRef<HTMLDivElement>(null)
 
+  // ── Voice ──
+  // Both capabilities are resolved after mount, never during render: they read
+  // `window`, and a server render that guessed "supported" would hydrate into a
+  // button that does nothing on a browser without the API.
+  const [canListen, setCanListen] = useState(false)
+  const [canSpeakHere, setCanSpeakHere] = useState(false)
+  const [listening, setListening] = useState(false)
+  const [speakingIndex, setSpeakingIndex] = useState<number | null>(null)
+  const [voiceError, setVoiceError] = useState<string | null>(null)
+  const recognitionRef = useRef<SpeechRecognitionHandle | null>(null)
+
+  useEffect(() => {
+    setCanListen(isListeningSupported())
+  }, [])
+
+  // Chrome fills the voice list asynchronously and refills it when the OS gains
+  // a voice pack, so this is a subscription rather than a one-shot check —
+  // otherwise the Telugu button would stay hidden on a machine that can in fact
+  // speak Telugu.
+  useEffect(() => {
+    setCanSpeakHere(canSpeak(lang))
+    return onVoicesReady(() => setCanSpeakHere(canSpeak(lang)))
+  }, [lang])
+
+  // Switching language mid-conversation must not leave an English voice reading
+  // on, or the microphone listening for the wrong language.
+  useEffect(() => {
+    stopSpeaking()
+    setSpeakingIndex(null)
+    recognitionRef.current?.stop()
+    recognitionRef.current = null
+    setListening(false)
+    setVoiceError(null)
+  }, [lang])
+
+  // Leaving the page with audio still playing is the one failure the user
+  // cannot cancel from the UI.
+  useEffect(() => () => {
+    stopSpeaking()
+    recognitionRef.current?.stop()
+  }, [])
+
+  const handleMic = useCallback(() => {
+    if (listening) {
+      // stop() still delivers whatever was heard; it does not discard it.
+      recognitionRef.current?.stop()
+      return
+    }
+
+    setVoiceError(null)
+    const handle = listenOnce(lang, {
+      onResult: (transcript) => onInputChange(transcript),
+      onError: (code) => {
+        if (code === 'not-allowed' || code === 'service-not-allowed') {
+          setVoiceError(copy.voiceDenied)
+        } else if (code === 'no-speech') {
+          setVoiceError(copy.voiceNoSpeech)
+        }
+        // Every other code ('aborted', 'network', …) is either self-inflicted or
+        // not actionable by the user, so it passes silently.
+      },
+      onEnd: () => {
+        recognitionRef.current = null
+        setListening(false)
+      },
+    })
+
+    if (!handle) return
+    recognitionRef.current = handle
+    setListening(true)
+  }, [listening, lang, onInputChange, copy.voiceDenied, copy.voiceNoSpeech])
+
+  const handleSpeak = useCallback(
+    (index: number, text: string) => {
+      if (speakingIndex === index) {
+        stopSpeaking()
+        setSpeakingIndex(null)
+        return
+      }
+      // Always the whole message, never the progressively revealed slice.
+      const started = speak(text, lang, () => setSpeakingIndex(null))
+      setSpeakingIndex(started ? index : null)
+    },
+    [speakingIndex, lang]
+  )
+
   useEffect(() => {
     const index = messages.length - 1
-    // Index 0 is the seeded greeting: it is already on screen at mount, so it is
-    // never animated. A user turn also cancels any reveal in flight, which drops
-    // the previous answer straight to its full text.
+    // `index < 1` covers both the empty transcript (-1) and the opening user
+    // turn (0) — the first thing that can ever be revealed is the reply at index
+    // 1. A user turn also cancels any reveal in flight, which drops the previous
+    // answer straight to its full text.
     if (index < 1 || messages[index].role !== 'bot') {
       setReveal(null)
       return
@@ -117,71 +224,89 @@ export default function ChatPanel({
   const textOf = (index: number, text: string) =>
     reveal && reveal.index === index ? text.slice(0, reveal.chars) : text
 
-  // Only the seeded greeting so far — a first-time visitor gets told what the
-  // assistant will answer instead of an empty transcript.
-  const isFirstVisit = messages.length <= 1
   const canSend = !loading && input.trim().length > 0
 
   return (
-    <>
-      <div className="chat-intro">
-        <WeatherBot condition={context?.condition} rain={context?.rain} size={30} />
-        <div className="chat-intro-copy">
-          <span className="kicker">{copy.assistant}</span>
-          <h2>{copy.title}</h2>
-          <p>{copy.subtitle}</p>
-        </div>
+    <div className="chat-panel">
+      {/* role=log + aria-live so each new turn is announced. Focusable so the
+          transcript can be scrolled from the keyboard. */}
+      <div
+        className="chat-messages"
+        role="log"
+        aria-live="polite"
+        aria-label={copy.title}
+        tabIndex={0}
+        ref={messagesRef}
+      >
+        {messages.map((msg, i) => (
+          <div key={i} className={msg.role === 'bot' ? 'bot-bubble' : 'user-bubble'}>
+            {textOf(i, msg.text)}
+            {/* Read-aloud is offered only when a voice for THIS language is
+                actually installed — see the honesty rule in lib/speech.ts. */}
+            {msg.role === 'bot' && canSpeakHere && msg.text.trim() && (
+              <button
+                type="button"
+                className="chat-speak"
+                onClick={() => handleSpeak(i, msg.text)}
+                aria-label={speakingIndex === i ? copy.voiceStopSpeaking : copy.voiceSpeak}
+                title={speakingIndex === i ? copy.voiceStopSpeaking : copy.voiceSpeak}
+              >
+                {speakingIndex === i ? <VolumeX size={13} /> : <Volume2 size={13} />}
+              </button>
+            )}
+          </div>
+        ))}
+        {loading && (
+          <div className="bot-bubble chat-thinking">
+            <span className="loading-spinner" />
+            {copy.sending}
+          </div>
+        )}
       </div>
 
-      <div className="chat-panel">
-        {/* role=log + aria-live so each new turn is announced. Focusable so the
-            transcript can be scrolled from the keyboard. */}
-        <div
-          className="chat-messages"
-          role="log"
-          aria-live="polite"
+      <WeatherContextStrip context={context} label={copy.contextLabel} />
+
+      {/* Single-line input inside a form, so Enter submits and there is no
+          Shift+Enter newline case to handle. */}
+      <form className="chat-input" onSubmit={onSubmit}>
+        <input
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          placeholder={copy.placeholder}
           aria-label={copy.title}
-          tabIndex={0}
-          ref={messagesRef}
-        >
-          {messages.map((msg, i) => (
-            <div key={i} className={msg.role === 'bot' ? 'bot-bubble' : 'user-bubble'}>
-              {textOf(i, msg.text)}
-            </div>
-          ))}
-          {loading && (
-            <div className="bot-bubble chat-thinking">
-              <span className="loading-spinner" />
-              {copy.sending}
-            </div>
-          )}
-        </div>
-
-        {isFirstVisit && <p className="chat-empty-hint">{copy.emptyHint}</p>}
-
-        <WeatherContextStrip context={context} label={copy.contextLabel} />
-
-        {/* Single-line input inside a form, so Enter submits and there is no
-            Shift+Enter newline case to handle. */}
-        <form className="chat-input" onSubmit={onSubmit}>
-          <input
-            value={input}
-            onChange={(e) => onInputChange(e.target.value)}
-            placeholder={copy.placeholder}
-            aria-label={copy.title}
+          disabled={loading}
+        />
+        {canListen && (
+          <button
+            type="button"
+            className={`chat-mic${listening ? ' is-listening' : ''}`}
+            onClick={handleMic}
             disabled={loading}
-          />
-          <MetalButton
-            type="submit"
-            aria-label={copy.send}
-            disabled={!canSend}
-            className="h-9 gap-1.5 rounded-full px-3.5 text-xs"
+            aria-label={listening ? copy.voiceListening : copy.voiceListen}
+            title={listening ? copy.voiceListening : copy.voiceListen}
+            aria-pressed={listening}
           >
-            <Send size={14} />
-            <span>{copy.send}</span>
-          </MetalButton>
-        </form>
-      </div>
-    </>
+            {listening ? <Square size={14} /> : <Mic size={14} />}
+          </button>
+        )}
+        <MetalButton
+          type="submit"
+          aria-label={copy.send}
+          disabled={!canSend}
+          className="h-9 gap-1.5 rounded-full px-3.5 text-xs"
+        >
+          <Send size={14} />
+          <span>{copy.send}</span>
+        </MetalButton>
+      </form>
+
+      {/* Only the two failures a user can act on: grant the permission, or
+          speak up. role=status so it is announced without stealing focus. */}
+      {voiceError && (
+        <p className="chat-voice-error" role="status">
+          {voiceError}
+        </p>
+      )}
+    </div>
   )
 }

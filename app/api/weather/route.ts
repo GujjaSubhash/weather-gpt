@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fetchAccuWeatherBundle, type AccuBundle } from '@/lib/providers/accuweather';
+import { fetchRainHistory } from '@/lib/providers/open-meteo';
+import { assessFromSeries, predictFlood, MODEL_INFO, type FloodAssessment } from '@/lib/flood-risk';
 
 /**
  * Localized copy for what this route can actually substantiate.
@@ -89,11 +91,86 @@ const WEATHER_CODES: Record<number, string> = {
   7101: 'Heavy ice pellets', 7102: 'Light ice pellets', 8000: 'Thunderstorm',
 };
 
+/**
+ * How far ahead the outlook looks. Tomorrow.io and OpenWeatherMap both already
+ * return far more than this in the SAME response the current conditions come
+ * from, so extending the horizon costs no extra call and no new dependency —
+ * the data was being fetched and thrown away.
+ */
+const OUTLOOK_HOURS = 12;
+
+/** Probability at or above which rain is worth warning about, %. */
+const RAIN_LIKELY_CHANCE = 40;
+/** Intensity at or above which an hour counts as actually wet, mm/hr. */
+const RAIN_WET_MM = 0.1;
+
+/**
+ * Rain expectation beyond the 90-minute nowcast.
+ *
+ * This exists because of a specific, reproducible failure: asked "will it rain
+ * today?", the assistant saw three 90-minute samples reading 0mm and answered
+ * "no" — and it rained shortly after. The 90-minute window was never wrong; it
+ * was just being read as if it covered the day. So the horizon is now carried
+ * explicitly, alongside the probability that actually answers the question.
+ */
+type RainOutlook = {
+  /** Hours ahead this outlook genuinely covers. Never implied, always stated. */
+  horizonHours: number;
+  /** Peak probability of precipitation across the horizon, %. */
+  peakChance: number;
+  /** Peak intensity across the horizon, mm/hr. */
+  peakIntensity: number;
+  /**
+   * Hours until rain first becomes likely, or null if it never does within the
+   * horizon. Null means "not in the next N hours" — NOT "it will not rain".
+   */
+  rainStartsInHours: number | null;
+  /** Per-hour series, so the client and the assistant can both be specific. */
+  hours: { inHours: number; chance: number; mm: number }[];
+};
+
+/**
+ * Fold an hour-by-hour series into an outlook.
+ *
+ * `pop` is expressed 0-100 by the time it arrives here; each provider converts
+ * its own scale before calling. Entries outside the horizon are dropped rather
+ * than clamped, so `horizonHours` reports what is really covered — a provider
+ * returning only 6 hours must not be presented as if it answered for 12.
+ */
+function buildOutlook(
+  entries: { inHours: number; chance: number; mm: number }[]
+): RainOutlook {
+  const hours = entries
+    .filter((e) => e.inHours >= 0 && e.inHours <= OUTLOOK_HOURS)
+    .sort((a, b) => a.inHours - b.inHours)
+    .map((e) => ({
+      inHours: Math.round(e.inHours),
+      chance: Math.min(100, Math.max(0, Math.round(e.chance))),
+      mm: Math.max(0, parseFloat(e.mm.toFixed(2))),
+    }));
+
+  if (!hours.length) {
+    return { horizonHours: 0, peakChance: 0, peakIntensity: 0, rainStartsInHours: null, hours: [] };
+  }
+
+  const firstWet = hours.find((h) => h.chance >= RAIN_LIKELY_CHANCE || h.mm >= RAIN_WET_MM);
+
+  return {
+    horizonHours: Math.max(...hours.map((h) => h.inHours)),
+    peakChance: Math.max(...hours.map((h) => h.chance)),
+    peakIntensity: Math.max(...hours.map((h) => h.mm)),
+    rainStartsInHours: firstWet ? firstWet.inHours : null,
+    hours,
+  };
+}
+
 type Normalized = {
   temperature: number; feelsLike: number; condition: string; rain: number;
   wind: number; humidity: number; visibility: number; pressure: number;
   cloud: number; rainChance: number;
   forecast: { label: string; value: number }[];
+  /** Rain expectation past the 90-minute nowcast. See RainOutlook. */
+  outlook: RainOutlook;
   riskLevel: 'HIGH' | 'MODERATE' | 'SAFE';
   source: string;
   /**
@@ -129,6 +206,13 @@ type OfficialAlert = {
 type Enriched = Normalized & {
   officialAlerts: OfficialAlert[];
   alertsAvailable: boolean;
+  /**
+   * The trained model's reading, or null when it could not run — outside the
+   * Hyderabad box it was fitted on, history fetch failed, or the series came
+   * back too short to fill the 30-day antecedent window. Null is a normal
+   * state, not an error, and the client renders nothing for it.
+   */
+  floodModel: FloodAssessment | null;
 };
 
 // In-memory cache keyed by rounded coordinates. Tomorrow.io's free tier allows
@@ -161,6 +245,17 @@ function safeErrorText(err: unknown): string {
   return redactSecrets(parts.join(' | '));
 }
 
+/**
+ * The rainfall-intensity rule behind `risk` / `rainfallGuidance`.
+ *
+ * NOT superseded by the trained model in lib/flood-risk.ts, because the two
+ * answer different questions. This one describes rain falling NOW, which is
+ * what the alert copy claims. The model estimates the chance of elevated river
+ * flow over the next two days from accumulation and antecedent saturation, and
+ * can legitimately read high on a dry hour after a wet fortnight — at which
+ * point "heavy rainfall in this area" would be false. So the model reports
+ * separately (see `floodModel` in the response) rather than overwriting this.
+ */
 function computeRisk(effectiveRain: number): 'HIGH' | 'MODERATE' | 'SAFE' {
   if (effectiveRain >= 7) return 'HIGH';
   if (effectiveRain >= 3) return 'MODERATE';
@@ -193,9 +288,13 @@ function orUndef(value: string | null): string | undefined {
  * AccuWeather being absent (`null`) leaves the reading exactly as the primary
  * source produced it, with no alerts and `alertsAvailable: false`.
  */
-function mergeAccu(base: Normalized, accu: AccuBundle | null): Enriched {
+function mergeAccu(
+  base: Normalized,
+  accu: AccuBundle | null,
+  floodModel: FloodAssessment | null
+): Enriched {
   if (!accu) {
-    return { ...base, officialAlerts: [], alertsAvailable: false };
+    return { ...base, officialAlerts: [], alertsAvailable: false, floodModel };
   }
 
   const officialAlerts: OfficialAlert[] = accu.alerts.map((a) => ({
@@ -214,7 +313,7 @@ function mergeAccu(base: Normalized, accu: AccuBundle | null): Enriched {
 
   // No larger measured rain → keep every number as-is, just attach alerts.
   if (accuRain === null || accuRain <= base.rain) {
-    return { ...base, officialAlerts, alertsAvailable: accu.alertsAvailable };
+    return { ...base, officialAlerts, alertsAvailable: accu.alertsAvailable, floodModel };
   }
 
   // AccuWeather has measured more rain than the primary intensity. Raise the
@@ -230,6 +329,7 @@ function mergeAccu(base: Normalized, accu: AccuBundle | null): Enriched {
     source: `${base.source} + AccuWeather`,
     officialAlerts,
     alertsAvailable: accu.alertsAvailable,
+    floodModel,
   };
 }
 
@@ -303,6 +403,17 @@ async function fetchTomorrow(lat: string, lon: string): Promise<Normalized> {
   const popsInRange = pts.filter((p) => p.t <= 90).map((p) => p.pop);
   const rainChance = Math.min(100, Math.round(popsInRange.length ? Math.max(...popsInRange) : 0));
 
+  // The 12-hour view, from the hourly timeline that was already in this
+  // response. Previously everything past ~3 hours was discarded, which left the
+  // assistant answering "will it rain today?" from 90 minutes of data.
+  const outlook = buildOutlook(
+    hourly.map((h) => ({
+      inHours: (Date.parse(h.time) - now) / 3_600_000,
+      chance: h.values.precipitationProbability ?? 0,
+      mm: h.values.rainIntensity ?? 0,
+    }))
+  );
+
   const currentRain = cur.rainIntensity ?? 0;
   const effectiveRain = Math.max(currentRain, ...forecast.map((f) => f.value));
 
@@ -318,6 +429,7 @@ async function fetchTomorrow(lat: string, lon: string): Promise<Normalized> {
     cloud: Math.round(cur.cloudCover ?? 0),
     rainChance,
     forecast,
+    outlook,
     riskLevel: computeRisk(effectiveRain),
     source: 'Tomorrow.io',
     // minutely[0] is the current-conditions bucket, so its `time` is the
@@ -396,6 +508,18 @@ async function fetchOpenWeather(lat: string, lon: string): Promise<Normalized> {
 
   const effectiveRain = Math.max(rainRate, ...forecast.map((f) => f.value));
 
+  // OWM's forecast is 3-hourly, so the outlook is coarser than Tomorrow.io's —
+  // but `horizonHours` reports what is actually covered, so a coarse answer is
+  // never presented as a fine one. `pop` is 0-1 here; buildOutlook wants 0-100.
+  // `rain['3h']` is accumulation over the bucket, so /3 converts it to mm/hr.
+  const outlook = buildOutlook(
+    (forecastData.list ?? []).map((entry: any) => ({
+      inHours: (entry.dt * 1000 - Date.now()) / 3_600_000,
+      chance: (entry.pop ?? 0) * 100,
+      mm: entry.rain?.['3h'] !== undefined ? entry.rain['3h'] / 3 : 0,
+    }))
+  );
+
   return {
     temperature: Math.round(weatherData.main?.temp || 0),
     feelsLike: Math.round(weatherData.main?.feels_like || 0),
@@ -408,11 +532,40 @@ async function fetchOpenWeather(lat: string, lon: string): Promise<Normalized> {
     cloud: weatherData.clouds?.all || 0,
     rainChance,
     forecast,
+    outlook,
     riskLevel: computeRisk(effectiveRain),
     source: 'OpenWeatherMap',
     // OWM reports its observation instant in `dt` (unix seconds).
     observedAt: observedAtIso(typeof weatherData.dt === 'number' ? weatherData.dt * 1000 : null),
   };
+}
+
+/**
+ * Run the trained flood model for a coordinate, or return null.
+ *
+ * Gated on inSupportedArea because the model was fitted on one ERA5 grid cell
+ * over Hyderabad and one GloFAS river point. Its coefficients encode this
+ * catchment's response to rain; scoring Chennai with them would produce a
+ * confident number about the wrong river.
+ *
+ * Never throws: the provider returns null on any failure and assessFromSeries
+ * returns null on a series too short to fill the antecedent window.
+ */
+async function assessFlood(lat: number, lon: number): Promise<FloodAssessment | null> {
+  if (!inSupportedArea(lat, lon)) return null;
+
+  const series = await fetchRainHistory(lat, lon);
+  if (!series) return null;
+
+  try {
+    return assessFromSeries(series);
+  } catch (err) {
+    // Defence in depth. Inference is pure arithmetic over a validated series,
+    // so this should be unreachable — but a model reading is a nice-to-have and
+    // must never be the reason the weather endpoint fails.
+    console.warn('Flood model inference failed, omitting reading:', safeErrorText(err));
+    return null;
+  }
 }
 
 async function getWeather(lat: string, lon: string): Promise<Enriched> {
@@ -427,6 +580,12 @@ async function getWeather(lat: string, lon: string): Promise<Enriched> {
   // AccuWeather quota.
   const accuPromise = fetchAccuWeatherBundle(parseFloat(lat), parseFloat(lon));
 
+  // Same deal, and started here rather than after the primary resolves so the
+  // history fetch overlaps it instead of adding to the response time. It lands
+  // in the same cache entry, so the 15-minute provider cache is a second layer
+  // rather than the only one.
+  const floodPromise = assessFlood(parseFloat(lat), parseFloat(lon));
+
   let base: Normalized;
   try {
     base = await fetchTomorrow(lat, lon);
@@ -435,8 +594,8 @@ async function getWeather(lat: string, lon: string): Promise<Enriched> {
     base = await fetchOpenWeather(lat, lon);
   }
 
-  const accu = await accuPromise;
-  const data = mergeAccu(base, accu);
+  const [accu, floodModel] = await Promise.all([accuPromise, floodPromise]);
+  const data = mergeAccu(base, accu, floodModel);
 
   cache.set(cacheKey, { at: Date.now(), data });
   return data;
@@ -535,6 +694,24 @@ type DemoScenario = {
    * URL would be a claim about a real authority's published page.
    */
   alerts: { source: string; description: string; severity: string; validForMinutes: number }[];
+  /**
+   * Feature vector for the trained model, so a demo exercises the real
+   * inference path instead of asserting a verdict.
+   *
+   * These are hand-written to be physically consistent with the scenario above
+   * — note `rain_1h` is millimetres accumulated in the last completed hour,
+   * which is not the same quantity as `rain` (intensity, mm/hr, right now) and
+   * legitimately differs when a shower is ramping or easing. The resulting
+   * LEVEL is whatever predictFlood returns for them; it is not set here.
+   */
+  floodFeatures: Record<string, number>;
+  /**
+   * Hourly rain chance (%) for the next 12 hours, index 0 = one hour out.
+   * Built into a RainOutlook by the same buildOutlook() the live path uses.
+   */
+  outlookChances: number[];
+  /** Matching hourly intensities, mm/hr. Same length as outlookChances. */
+  outlookMm: number[];
 };
 
 const DEMO_SCENARIOS: Record<DemoId, DemoScenario> = {
@@ -569,6 +746,23 @@ const DEMO_SCENARIOS: Record<DemoId, DemoScenario> = {
         validForMinutes: 360,
       },
     ],
+    // Peak monsoon after a very wet month: api_30d of 132 is roughly four
+    // standard deviations above the 40-year mean, the kind of loading the
+    // October 2020 event showed.
+    floodFeatures: {
+      rain_1h: 16.0,
+      rain_3h: 44.5,
+      rain_6h: 61.8,
+      rain_24h: 96.4,
+      rain_72h: 141.0,
+      rain_7d: 198.0,
+      max_1h_in_24h: 18.5,
+      wet_hours_24h: 15,
+      api_30d: 132.0,
+    },
+    // Storm easing over the evening but never fully clearing.
+    outlookChances: [100, 95, 90, 80, 70, 60, 55, 45, 40, 35, 30, 30],
+    outlookMm: [22.1, 15.3, 8.7, 5.2, 3.4, 2.1, 1.4, 0.8, 0.5, 0.3, 0.2, 0.1],
   },
   // Ordinary monsoon shower, decaying steadily. No warning in force.
   moderate_rain: {
@@ -592,6 +786,25 @@ const DEMO_SCENARIOS: Record<DemoId, DemoScenario> = {
       { label: '+90 min', value: 1.5 },
     ],
     alerts: [],
+    // A shower that began part-way through the last hour, hence rain_1h (1.8mm
+    // banked) sitting below the 5.2 mm/hr it is falling at now. Antecedents are
+    // an ordinary monsoon week — api_30d 26 against a 40-year mean of 20.
+    floodFeatures: {
+      rain_1h: 1.8,
+      rain_3h: 3.1,
+      rain_6h: 4.0,
+      rain_24h: 6.2,
+      rain_72h: 9.5,
+      rain_7d: 22.0,
+      max_1h_in_24h: 2.4,
+      wet_hours_24h: 4,
+      api_30d: 26.0,
+    },
+    // The case that motivated the outlook: this shower eases to nothing inside
+    // the 90-minute window, then a second band arrives around hour 5. Reading
+    // only the nowcast here would produce a confident, wrong "no".
+    outlookChances: [75, 55, 30, 25, 45, 80, 85, 70, 50, 35, 25, 20],
+    outlookMm: [4.8, 3.1, 1.5, 0.4, 0.9, 5.6, 7.2, 4.1, 1.8, 0.6, 0.2, 0.1],
   },
   // Dry post-monsoon afternoon — the baseline the other two are read against.
   clear: {
@@ -615,6 +828,22 @@ const DEMO_SCENARIOS: Record<DemoId, DemoScenario> = {
       { label: '+90 min', value: 0 },
     ],
     alerts: [],
+    // Post-monsoon dry spell: one shower a week ago and nothing since.
+    floodFeatures: {
+      rain_1h: 0,
+      rain_3h: 0,
+      rain_6h: 0,
+      rain_24h: 0,
+      rain_72h: 0,
+      rain_7d: 1.2,
+      max_1h_in_24h: 0,
+      wet_hours_24h: 0,
+      api_30d: 4.2,
+    },
+    // Genuinely dry across the whole horizon — the only case where "no rain
+    // expected" is a claim the data actually supports.
+    outlookChances: [10, 8, 5, 5, 5, 10, 10, 15, 15, 10, 10, 5],
+    outlookMm: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   },
 };
 
@@ -637,6 +866,22 @@ function demoResponse(scenario: DemoScenario, lang: string) {
     startsAt: nowIso,
     endsAt: new Date(now + a.validForMinutes * 60_000).toISOString(),
   }));
+
+  // The real model, on the scenario's feature vector. The scenario supplies the
+  // inputs; predictFlood supplies the verdict. That keeps a demo from drifting
+  // away from the shipped model, and means a retrained model changes what the
+  // demo shows — which is the correct behaviour, not a bug.
+  const floodModel = predictFlood(scenario.floodFeatures, nowIso.slice(0, 16));
+
+  // Through the same buildOutlook() the live path uses, so a demo cannot show a
+  // shape the real endpoint would never produce.
+  const outlook = buildOutlook(
+    scenario.outlookChances.map((chance, i) => ({
+      inHours: i + 1,
+      chance,
+      mm: scenario.outlookMm[i] ?? 0,
+    }))
+  );
 
   return {
     area: scenario.area,
@@ -663,11 +908,20 @@ function demoResponse(scenario: DemoScenario, lang: string) {
       kind: 'demo' as const,
     },
     forecast: scenario.forecast,
+    outlook,
     source: DEMO_SOURCE,
     officialAlerts,
     // A scenario states its own warnings in full, so "asked, and this is the
     // answer" is true: an empty list means none in force, not "could not ask".
     alertsAvailable: true,
+    floodModel: {
+      level: floodModel.level,
+      probability: floodModel.probability,
+      factors: floodModel.factors,
+      features: floodModel.features,
+      asOf: floodModel.asOf,
+      model: MODEL_INFO,
+    },
     /** The client's render flag for the SIMULATED badge. Absent on real readings. */
     simulated: true as const,
     lat: scenario.lat,
@@ -770,9 +1024,32 @@ export async function GET(request: Request) {
         kind: 'realtime' as const,
       },
       forecast: w.forecast,
+      /**
+       * Rain expectation past the 90-minute nowcast, with the horizon it
+       * actually covers. The assistant is required to quote this rather than
+       * infer a whole day from three 90-minute samples.
+       */
+      outlook: w.outlook,
       source: w.source,
       officialAlerts: w.officialAlerts,
       alertsAvailable: w.alertsAvailable,
+      /**
+       * The trained model's reading — additive, and deliberately NOT folded into
+       * `risk`. It answers a different question (chance of elevated river flow
+       * within two days, from accumulation and antecedent wetness) than the
+       * rainfall-intensity copy above, and it can be null whenever the model
+       * could not run. Every existing field is byte-identical to before.
+       */
+      floodModel: w.floodModel
+        ? {
+            level: w.floodModel.level,
+            probability: w.floodModel.probability,
+            factors: w.floodModel.factors,
+            features: w.floodModel.features,
+            asOf: w.floodModel.asOf,
+            model: MODEL_INFO,
+          }
+        : null,
       lat: resolvedLat,
       lon: resolvedLon,
     };

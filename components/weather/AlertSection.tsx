@@ -67,6 +67,25 @@ export type AlertSectionProps = {
   copy: AlertSectionCopy
 }
 
+/**
+ * Drops warnings the feed has said twice.
+ *
+ * Identity is issuer + wording + validity end. A feed re-issues the same
+ * bulletin, and one warning is often carried by two products, so without this
+ * the same sentence renders as two full cards. Nothing is merged or reworded:
+ * two warnings that differ in any of the three still get their own card, so a
+ * genuinely separate warning can never be swallowed by a near-match.
+ */
+function dedupe(alerts: OfficialAlert[]): OfficialAlert[] {
+  const seen = new Set<string>()
+  return alerts.filter((alert) => {
+    const key = `${alert.source}|${alert.description}|${alert.endsAt ?? ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 /** Locale-formatted validity stamp. Unparseable input yields nothing. */
 function stamp(value?: string | null): string | null {
   if (!value) return null
@@ -88,7 +107,7 @@ export default function AlertSection({
   onAskAboutAlert,
   copy,
 }: AlertSectionProps) {
-  const alerts = officialAlerts ?? []
+  const alerts = dedupe(officialAlerts ?? [])
   const hasOfficial = alerts.length > 0
   // A safe reading has nothing to explain, so the derived block gets no CTA.
   const derivedWorthExplaining = risk === 'high' || risk === 'moderate'
@@ -125,7 +144,9 @@ export default function AlertSection({
                 <div className="alert-meta">
                   {/* The issuer's grade, shown as written. It is not mapped onto
                       this app's risk scale, which measures something else. */}
-                  {alert.severity && <span>{copy.severityLabel}: {alert.severity}</span>}
+                  {alert.severity && (
+                    <span className="alert-severity">{copy.severityLabel}: {alert.severity}</span>
+                  )}
                   {from && <span>{copy.fromLabel} {from}</span>}
                   {until && <span>{copy.untilLabel} {until}</span>}
                   {alert.link && (
@@ -137,7 +158,7 @@ export default function AlertSection({
                 {onAskAboutAlert && (
                   <button
                     type="button"
-                    className="button secondary alert-ask"
+                    className="alert-ask-link"
                     onClick={() => ask(`${copy.askQuestion} "${alert.description}"`)}
                   >
                     <MessageSquare size={13} />{copy.askCta}
@@ -165,8 +186,26 @@ export default function AlertSection({
         )}
 
         {/* Kept visually and textually separate from official warnings in every
-            state: this is computed from measured rainfall, nothing more. */}
-        {risk && (
+            state: this is computed from measured rainfall, nothing more.
+
+            Two shapes, because its standing changes. With official warnings
+            above it, this is a footnote to them — one line, no banner, no
+            button, because a second full-width status box directly under a real
+            bulletin reads as a second warning. On its own it is the only thing
+            the section has to say, so it gets the banner and the CTA. The
+            disclaimer travels with both. */}
+        {risk && (hasOfficial ? (
+          <div className="alert-derived subordinate">
+            <p className="alert-derived-line">
+              <span className={`alert-derived-dot risk-${risk}`} aria-hidden="true" />
+              <span>
+                <b>{copy.derivedLabel}</b> — {copy.riskWord}
+                {rainfallGuidance ? ` · ${rainfallGuidance}` : ''}
+              </span>
+            </p>
+            <p className="alert-derived-note">{copy.derivedNote}</p>
+          </div>
+        ) : (
           <div className="alert-derived">
             <span className="kicker">{copy.derivedLabel}</span>
             <div className={`alert-banner ${risk} alert-stacked`}>
@@ -193,7 +232,7 @@ export default function AlertSection({
               </button>
             )}
           </div>
-        )}
+        ))}
       </div>
     </>
   )

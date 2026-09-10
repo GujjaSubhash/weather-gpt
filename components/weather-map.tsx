@@ -42,8 +42,8 @@ const STORM_PERIOD = 190 // frames between sheet-lightning flashes (~3s at 60fps
  * What the overlay is drawing. Rain is a MEASUREMENT, so a positive reading wins
  * over the condition text; everything else is classified from that text, with
  * temperature only breaking the tie between a plain clear day and a cold one.
- * Mirrors variantOf() in components/chat/WeatherBot.tsx so the map and the
- * mascot never disagree about what the weather is.
+ * Mirrors variantOf() in lib/weather-variant.ts so the map and the backdrop
+ * never disagree about what the weather is.
  */
 type WeatherKind = 'storm' | 'rain' | 'fog' | 'cloud' | 'cold' | 'clear'
 

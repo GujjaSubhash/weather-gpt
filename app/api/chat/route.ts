@@ -1,7 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GoogleGenerativeAI, type Content } from '@google/generative-ai';
 
-const systemInstruction = `You are WeatherGPT — a friendly, knowledgeable weather companion for people in Hyderabad, India. You speak like a helpful friend who happens to be a weather expert, not like a robot or a formal assistant. Be warm, natural, and conversational. Use simple language. Give practical advice people can actually act on. You have access to live weather data including temperature, rainfall, humidity, wind, flood risk, 90-minute forecast, and official weather alerts. Use this data naturally in conversation — do not just dump numbers, explain what they mean for the person's day. You cover: current weather, temperature and how it feels, rainfall and flood risk, weather alerts, travel safety, what to wear, whether to carry an umbrella, short-term forecasts, and general climate questions about Hyderabad. When you do not have data say so honestly — never make things up. Reply in whatever language the user writes in — English, Hindi, or Telugu. Keep replies concise and human. No bullet points unless they genuinely help. No corporate speak. No As an AI language model. Just talk to them like a knowledgeable friend.`;
+/**
+ * The RAIN RULES block is not stylistic. A user asked whether it would rain,
+ * was told no, and it rained shortly after — because the model was reading a
+ * 90-minute nowcast of zeros as an answer about the whole day. The rules below
+ * make the horizon binding and hand the model a precomputed verdict it is not
+ * allowed to overrule, so the same failure cannot recur through phrasing.
+ */
+const systemInstruction = `You are WeatherGPT — a friendly, knowledgeable weather companion for people in Hyderabad, India. You speak like a helpful friend who happens to be a weather expert, not like a robot or a formal assistant. Be warm, natural, and conversational. Use simple language. Give practical advice people can actually act on. You have access to live weather data including temperature, rainfall, humidity, wind, flood risk, a 90-minute nowcast, an hourly rain outlook, and official weather alerts. Use this data naturally in conversation — do not just dump numbers, explain what they mean for the person's day.
+
+RAIN RULES — these override your own judgement and your instinct to sound reassuring:
+1. The weather context contains a line beginning "RAIN OUTLOOK". It states the horizon in hours and ends with a VERDICT. Follow that verdict exactly. Never contradict it, soften it, or talk the user out of it.
+2. Rainfall in mm/hr is what is falling RIGHT NOW. It is not a forecast. 0mm/hr means it is not raining this minute — it never means it will not rain later. Never answer "will it rain?" from the mm/hr figure.
+3. Never say it will not rain over a period longer than the stated horizon. If someone asks about "today", "this evening", "tonight" or "tomorrow" and the horizon is shorter than that, answer for the hours you can see and say plainly that you cannot see further. For example: "No rain in the next 12 hours — but I can't see past that."
+4. When rain is likely or possible, say when, using the hourly rain chances.
+5. If asked whether to carry an umbrella and rain is possible at any point in the horizon, say yes and give the timing. Err toward the umbrella — being wrong about rain that does not arrive costs someone nothing; being wrong the other way soaks them.
+6. You have NO data on roads, traffic, waterlogging, drainage, or how long any journey takes. Never describe road or traffic conditions, not even in passing and not even as an aside like "watch out for wet roads" — the app measures none of it. Talk about rain, wind, temperature and personal precautions only.
+
+You cover: current weather, temperature and how it feels, rainfall and flood risk, weather alerts, travel safety, what to wear, whether to carry an umbrella, short-term forecasts, and general climate questions about Hyderabad. When you do not have data say so honestly — never make things up. Reply in whatever language the user writes in — English, Hindi, or Telugu. Keep replies concise and human. No bullet points unless they genuinely help. No corporate speak. No As an AI language model. Just talk to them like a knowledgeable friend.`;
 
 /** Longest question accepted. Beyond this the request is rejected, not truncated. */
 const MESSAGE_MAX = 2000;
@@ -140,10 +157,64 @@ type WeatherContext = {
   rainChance?: number;
   risk?: string;
   forecast?: { label?: string; value?: number }[];
+  /** Rain expectation past the 90-minute nowcast, from /api/weather. */
+  outlook?: {
+    horizonHours?: number;
+    peakChance?: number;
+    peakIntensity?: number;
+    rainStartsInHours?: number | null;
+    hours?: { inHours?: number; chance?: number; mm?: number }[];
+  } | null;
   updatedAt?: string;
   source?: string;
   alerts?: { source?: string; description?: string; severity?: string }[];
 };
+
+/**
+ * Turn the outlook into an unambiguous verdict sentence.
+ *
+ * Written out server-side on purpose. Handing the model `rainfall 0mm/hr` next
+ * to `rain chance 70%` and leaving it to weigh them produced exactly the wrong
+ * answer in practice: four fields reading zero outvoted the one field that
+ * actually answers "will it rain", and a user was told no shortly before it
+ * rained. The verdict is computed here so there is nothing to misweigh, and the
+ * horizon is always named so a "no" can never be read as covering the day.
+ */
+function buildRainVerdict(weather: WeatherContext): string {
+  const outlook = weather.outlook;
+  const horizon = typeof outlook?.horizonHours === 'number' ? outlook.horizonHours : 0;
+
+  if (!outlook || horizon <= 0) {
+    // No outlook: the 90-minute nowcast is genuinely all there is. Say so
+    // rather than letting a short window stand in for the day.
+    const chance = typeof weather.rainChance === 'number' ? weather.rainChance : null;
+    return chance === null
+      ? 'RAIN OUTLOOK: unavailable. You do not know whether it will rain. Say so.'
+      : `RAIN OUTLOOK: ${chance}% chance within the next 90 MINUTES ONLY. ` +
+          'You have no data beyond 90 minutes — do not answer for "today", "this evening" or "later".';
+  }
+
+  const peak = typeof outlook.peakChance === 'number' ? outlook.peakChance : 0;
+  const startsIn = outlook.rainStartsInHours;
+  const intensity = typeof outlook.peakIntensity === 'number' ? outlook.peakIntensity : 0;
+
+  const head = `RAIN OUTLOOK (next ${horizon} hours): peak chance ${peak}%`;
+  const detail =
+    typeof startsIn === 'number'
+      ? `, rain becoming likely in about ${startsIn} hour${startsIn === 1 ? '' : 's'}` +
+        (intensity > 0 ? `, peaking near ${intensity}mm/hr` : '')
+      : ', no hour in that window reaches a likely-rain threshold';
+
+  const ruling =
+    peak >= 60
+      ? ' VERDICT: rain is LIKELY — say yes, and give the timing.'
+      : peak >= 30
+        ? ' VERDICT: rain is POSSIBLE — say it could rain and give the timing. Do NOT say no.'
+        : ' VERDICT: rain is unlikely in this window. You may say that, but only for ' +
+          `the next ${horizon} hours — never for longer.`;
+
+  return head + detail + '.' + ruling;
+}
 
 /**
  * Formats live weather into one natural-language line for the model. When the
@@ -173,12 +244,25 @@ function buildWeatherContext(weather: WeatherContext | null | undefined): string
       ? weather.alerts.map((a) => a.description || a.source || 'unspecified alert').join(' | ')
       : 'none active';
 
+  // Hour-by-hour, so the assistant can answer "when?" and not just "whether".
+  const hourly =
+    Array.isArray(weather.outlook?.hours) && weather.outlook.hours.length
+      ? weather.outlook.hours
+          .map((h) => `+${h.inHours ?? 0}h ${h.chance ?? 0}%`)
+          .join(', ')
+      : 'not available';
+
   return (
     `Current conditions in ${weather.area || 'Hyderabad'}: ${n(weather.temperature)}°C ` +
     `feels like ${n(weather.feelsLike)}°C, ${weather.condition || 'conditions unavailable'}, ` +
     `rainfall ${n(weather.rain)}mm/hr, wind ${n(weather.wind)}km/h, humidity ${n(weather.humidity)}%, ` +
-    `rain chance ${n(weather.rainChance)}%, flood risk: ${weather.risk || 'unknown'}. ` +
-    `90-min forecast: ${forecast}. Alerts: ${alerts}. ` +
+    `flood risk: ${weather.risk || 'unknown'}. ` +
+    // The nowcast is explicitly labelled as a 90-minute window rather than left
+    // to look like a general forecast.
+    `Next 90 minutes (nowcast): ${forecast}, ${n(weather.rainChance)}% chance. ` +
+    `${buildRainVerdict(weather)} ` +
+    `Hourly rain chance: ${hourly}. ` +
+    `Alerts: ${alerts}. ` +
     `Data from ${weather.source || 'unknown source'} at ${weather.updatedAt || 'unknown time'}.`
   );
 }

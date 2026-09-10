@@ -4,19 +4,24 @@ import { FormEvent, useCallback, useEffect, useRef, useState } from 'react'
 import {
   ArrowUpRight, Cloud, CloudDrizzle,
   CloudLightning, CloudRain, Droplets, Eye, Gauge, Info,
-  LocateFixed, MoveHorizontal, RefreshCw, Search, Send,
-  ShieldCheck, Sun, TrendingDown, TrendingUp, Wind, X,
+  LocateFixed, MoveHorizontal, RefreshCw, Search,
+  ShieldCheck, Sun, TrendingDown, TrendingUp, TriangleAlert, Wind, X, Zap,
   type LucideIcon,
 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import ChatPanel from '@/components/chat/ChatPanel'
+import DynamicIsland from '@/components/island/DynamicIsland'
+import type { SpeechLang } from '@/lib/speech'
 import type { ChatContext } from '@/components/chat/WeatherContextStrip'
 import AlertSection, { type OfficialAlert } from '@/components/weather/AlertSection'
 import ClimateCard from '@/components/weather/ClimateCard'
 import RainBackdrop from '@/components/rain-backdrop'
+import CharminarMark from '@/components/brand/CharminarMark'
+import SkylineHorizon from '@/components/brand/SkylineHorizon'
 import WeatherAurora from '@/components/backdrop/WeatherAurora'
-import { LiquidButton, MetalButton } from '@/components/ui/liquid-glass-button'
+import { LiquidButton } from '@/components/ui/liquid-glass-button'
 import { playDemoAlert, type DemoAlertLevel } from '@/lib/demo-alert'
+import { useBodyScrollLock } from '@/lib/use-body-scroll-lock'
 
 const WeatherMap = dynamic(() => import('@/components/weather-map'), { ssr: false })
 
@@ -46,6 +51,18 @@ type Weather = {
   /** Provider observation time, not render time. */
   updatedAt: string
   forecast: { label: string; value: number }[]
+  /**
+   * Rain expectation past the 90-minute nowcast, with the horizon it actually
+   * covers. `rainStartsInHours: null` means "not within horizonHours" — it does
+   * NOT mean it will not rain.
+   */
+  outlook?: {
+    horizonHours: number
+    peakChance: number
+    peakIntensity: number
+    rainStartsInHours: number | null
+    hours: { inHours: number; chance: number; mm: number }[]
+  }
   source?: string
   /** Official alerts from AccuWeather. `alertsAvailable` separates "asked, none
    *  in force" from "could not ask"; both may be absent if AccuWeather was
@@ -121,6 +138,10 @@ type ChatMsg = { role: 'user' | 'bot'; text: string }
 
 const langParam: Record<Language, string> = { EN: 'EN', 'हि': 'hi', 'తె': 'te' }
 
+/** Separate from `langParam` on purpose: that one feeds the APIs, which expect
+ *  'EN'; the Web Speech API needs a real language subtag. */
+const SPEECH_LANG: Record<Language, SpeechLang> = { EN: 'en', 'हि': 'hi', 'తె': 'te' }
+
 /** BCP-47 tags, so month names in the climate card follow the chosen language. */
 const LOCALES: Record<Language, string> = { EN: 'en-IN', 'हि': 'hi-IN', 'తె': 'te-IN' }
 
@@ -130,9 +151,7 @@ const copy = {
     /* The entry screen leads with what this product is: an assistant you talk to.
        aiTagline replaced the flood-only `sub` line that used to greet every user;
        `sub` had no other reference, so it is gone rather than left dangling. */
-    aiKicker: 'CONVERSATIONAL WEATHER AI',
     aiTagline: 'Conversational AI for Weather, Alerts and Climate',
-    orLabel: 'OR',
     search: 'Search any area — Meerpet, Kukatpally, Banjara Hills...',
     next: 'Next 90 minutes',
     ask: 'Ask WeatherGPT',
@@ -140,20 +159,17 @@ const copy = {
     guidance: 'General guidance (from rainfall)',
     roadTraffic: 'Road & traffic conditions', notAvailable: 'Not available',
     coverageNotice: 'Local weather analysis covers Hyderabad only — showing weather for this location',
-    /* Ordered by pillar: current conditions, forecast, alerts, travel safety,
-       then the flood prompts the product started with (retained, not removed).
-       The entry screen shows a fixed prefix — see ONBOARDING_SUGGESTION_LIMIT. */
-    suggestions: [
-      'How is the weather right now?',
-      'Will it rain today?',
-      'Should I carry an umbrella?',
-      'Any weather alerts near me?',
-      'Is it safe to go out?',
-      'How does it feel outside?',
-    ],
-    chatEmptyHint: "Ask anything — current conditions, today's forecast, warnings, travel safety, or how today compares with normal.",
     chatContextLabel: 'LIVE CONTEXT',
     chatSend: 'Send',
+    /* Voice controls. Each is only rendered when the browser genuinely supports
+       that language — see lib/speech.ts on why a wrong-language voice is worse
+       than no button at all. */
+    voiceListen: 'Speak your question',
+    voiceListening: 'Listening — tap to stop',
+    voiceSpeak: 'Read this answer aloud',
+    voiceStopSpeaking: 'Stop reading',
+    voiceDenied: 'Microphone access was blocked. Enable it in your browser settings to use voice input.',
+    voiceNoSpeech: "Didn't catch that — try again.",
     /* Alerts surface. The "not connected" wording is deliberately not an
        all-clear: it states that we cannot see official warnings, which is a
        different fact from there being none. */
@@ -209,27 +225,24 @@ const copy = {
     currentConditions: 'Current conditions', advisoryTitle: 'Weather advisory',
     liveMap: 'Weather Map', liveMapSub: 'Live weather and rainfall radar over Hyderabad',
     liveMapNav: 'Weather map', askNav: 'Ask WeatherGPT',
+    islandHint: 'Ask about the weather', islandClose: 'Close',
     heroTitle: 'Real-Time Weather Analysis for Hyderabad',
     heroSub: 'Live conditions, rainfall, official alerts and climate context for your area.',
     feelsLike: 'Feels like', updated: 'Updated',
     rainfall: 'Rainfall', wind: 'Wind', humidity: 'Humidity',
     visibility: 'Visibility', pressure: 'Pressure', cloudCover: 'Cloud cover',
     rainChance: 'Rain chance', forecast90: '90 minute forecast',
-    aiAssistant: 'AI WEATHER ASSISTANT',
     aiSub: 'Get instant answers about current weather, alerts and climate.',
     footerBuilt: 'Built for SIH 2026',
     locationWait: 'Getting your location...',
     locationSub: 'Finding your area and loading live weather conditions.',
     locationTimedOut: 'Location took too long. Search your area manually to continue.',
-    locationPrivacy: 'Your location stays on your device',
     rainChanceSub: 'Rain chance in next 90 min',
     areaResults: 'AREA RESULTS',
   },
   'हि': {
     allow: 'स्थान अनुमति दें', manual: 'मैन्युअल खोज',
-    aiKicker: 'संवादात्मक मौसम AI',
     aiTagline: 'मौसम, अलर्ट और जलवायु के लिए संवादात्मक AI',
-    orLabel: 'या',
     search: 'क्षेत्र खोजें — मीरपेट, कुकटपल्ली, बंजारा हिल्स...',
     next: 'अगले 90 मिनट',
     ask: 'WeatherGPT से पूछें',
@@ -237,17 +250,14 @@ const copy = {
     guidance: 'सामान्य सलाह (वर्षा के आधार पर)',
     roadTraffic: 'सड़क और ट्रैफ़िक स्थिति', notAvailable: 'उपलब्ध नहीं',
     coverageNotice: 'स्थानीय मौसम विश्लेषण केवल हैदराबाद के लिए है — इस स्थान का मौसम दिखाया जा रहा है',
-    suggestions: [
-      'अभी मौसम कैसा है?',
-      'क्या आज बारिश होगी?',
-      'छाता लेना चाहिए?',
-      'कोई मौसम चेतावनी है?',
-      'बाहर जाना सुरक्षित है?',
-      'बाहर कैसा लग रहा है?',
-    ],
-    chatEmptyHint: 'कुछ भी पूछें — वर्तमान स्थिति, आज का पूर्वानुमान, चेतावनी, यात्रा सुरक्षा या आज सामान्य से कैसा है।',
     chatContextLabel: 'लाइव संदर्भ',
     chatSend: 'भेजें',
+    voiceListen: 'अपना सवाल बोलें',
+    voiceListening: 'सुन रहा हूँ — रोकने के लिए दबाएँ',
+    voiceSpeak: 'यह उत्तर सुनें',
+    voiceStopSpeaking: 'पढ़ना बंद करें',
+    voiceDenied: 'माइक्रोफ़ोन की अनुमति नहीं मिली। वॉइस इनपुट के लिए इसे ब्राउज़र सेटिंग्स में चालू करें।',
+    voiceNoSpeech: 'सुनाई नहीं दिया — फिर से कोशिश करें।',
     alertsKicker: 'चेतावनियाँ और अलर्ट',
     alertsTitle: 'अलर्ट',
     alertsSub: 'इस क्षेत्र की आधिकारिक चेतावनियाँ, वर्षा से गणना की गई सलाह से अलग रखी गई हैं।',
@@ -297,27 +307,24 @@ const copy = {
     currentConditions: 'वर्तमान स्थिति', advisoryTitle: 'मौसम सलाह',
     liveMap: 'मौसम मानचित्र', liveMapSub: 'हैदराबाद पर लाइव मौसम और वर्षा रडार',
     liveMapNav: 'मौसम मानचित्र', askNav: 'WeatherGPT से पूछें',
+    islandHint: 'मौसम के बारे में पूछें', islandClose: 'बंद करें',
     heroTitle: 'हैदराबाद के लिए रियल-टाइम मौसम विश्लेषण',
     heroSub: 'आपके क्षेत्र के लिए लाइव स्थिति, वर्षा, आधिकारिक चेतावनियाँ और जलवायु संदर्भ।',
     feelsLike: 'महसूस होता है', updated: 'अपडेट',
     rainfall: 'वर्षा', wind: 'हवा', humidity: 'आर्द्रता',
     visibility: 'दृश्यता', pressure: 'दबाव', cloudCover: 'बादल',
     rainChance: 'बारिश की संभावना', forecast90: '90 मिनट का पूर्वानुमान',
-    aiAssistant: 'AI मौसम सहायक',
     aiSub: 'वर्तमान मौसम, चेतावनियों और जलवायु के बारे में तुरंत उत्तर पाएं।',
     footerBuilt: 'SIH 2026 के लिए बनाया गया',
     locationWait: 'आपकी लोकेशन मिल रही है...',
     locationSub: 'आपके क्षेत्र को खोजा जा रहा है।',
     locationTimedOut: 'लोकेशन में समय लगा। मैन्युअल खोज करें।',
-    locationPrivacy: 'आपकी लोकेशन आपके डिवाइस पर रहती है',
     rainChanceSub: 'अगले 90 मिनट में बारिश की संभावना',
     areaResults: 'क्षेत्र परिणाम',
   },
   'తె': {
     allow: 'స్థానాన్ని అనుమతించండి', manual: 'మాన్యువల్‌గా వెతకండి',
-    aiKicker: 'సంభాషణ వాతావరణ AI',
     aiTagline: 'వాతావరణం, హెచ్చరికలు మరియు వాతావరణ సమాచారం కోసం సంభాషణ AI',
-    orLabel: 'లేదా',
     search: 'ప్రాంతాన్ని వెతకండి — మీర్‌పేట, కుకట్‌పల్లి, బంజారా హిల్స్...',
     next: 'తదుపరి 90 నిమిషాలు',
     ask: 'WeatherGPTని అడగండి',
@@ -325,17 +332,14 @@ const copy = {
     guidance: 'సాధారణ సూచన (వర్షపాతం ఆధారంగా)',
     roadTraffic: 'రోడ్డు & ట్రాఫిక్ పరిస్థితులు', notAvailable: 'అందుబాటులో లేదు',
     coverageNotice: 'స్థానిక వాతావరణ విశ్లేషణ హైదరాబాద్‌కు మాత్రమే — ఈ ప్రాంతపు వాతావరణం చూపుతోంది',
-    suggestions: [
-      'ఇప్పుడు వాతావరణం ఎలా ఉంది?',
-      'ఈరోజు వర్షం పడుతుందా?',
-      'గొడుగు తీసుకెళ్ళాలా?',
-      'వాతావరణ హెచ్చరికలు ఉన్నాయా?',
-      'బయటకు వెళ్ళడం సురక్షితమేనా?',
-      'బయట ఎలా అనిపిస్తోంది?',
-    ],
-    chatEmptyHint: 'ఏదైనా అడగండి — ప్రస్తుత పరిస్థితులు, నేటి అంచనా, హెచ్చరికలు, ప్రయాణ భద్రత లేదా నేడు సాధారణంతో ఎలా ఉందో.',
     chatContextLabel: 'లైవ్ సందర్భం',
     chatSend: 'పంపండి',
+    voiceListen: 'మీ ప్రశ్న చెప్పండి',
+    voiceListening: 'వింటున్నాను — ఆపడానికి నొక్కండి',
+    voiceSpeak: 'ఈ సమాధానం వినండి',
+    voiceStopSpeaking: 'చదవడం ఆపండి',
+    voiceDenied: 'మైక్రోఫోన్ అనుమతి నిరాకరించబడింది. వాయిస్ ఇన్‌పుట్ కోసం బ్రౌజర్ సెట్టింగ్‌లలో దీన్ని ఆన్ చేయండి.',
+    voiceNoSpeech: 'వినిపించలేదు — మళ్లీ ప్రయత్నించండి.',
     alertsKicker: 'హెచ్చరికలు & అలర్ట్‌లు',
     alertsTitle: 'అలర్ట్‌లు',
     alertsSub: 'ఈ ప్రాంతానికి అధికారిక హెచ్చరికలు, వర్షపాతం నుండి మేము లెక్కించిన సూచన నుండి వేరుగా.',
@@ -385,30 +389,23 @@ const copy = {
     currentConditions: 'ప్రస్తుత పరిస్థితులు', advisoryTitle: 'వాతావరణ సూచన',
     liveMap: 'వాతావరణ మ్యాప్', liveMapSub: 'హైదరాబాద్‌పై లైవ్ వాతావరణం మరియు వర్షపాత రాడార్',
     liveMapNav: 'వాతావరణ మ్యాప్', askNav: 'WeatherGPTని అడగండి',
+    islandHint: 'వాతావరణం గురించి అడగండి', islandClose: 'మూసివేయండి',
     heroTitle: 'హైదరాబాద్ కోసం నిజ-సమయ వాతావరణ విశ్లేషణ',
     heroSub: 'మీ ప్రాంతానికి లైవ్ పరిస్థితులు, వర్షపాతం, అధికారిక హెచ్చరికలు మరియు వాతావరణ సందర్భం.',
     feelsLike: 'అనిపిస్తోంది', updated: 'నవీకరించబడింది',
     rainfall: 'వర్షపాతం', wind: 'గాలి', humidity: 'తేమ',
     visibility: 'దృశ్యమానత', pressure: 'పీడనం', cloudCover: 'మేఘావరణం',
     rainChance: 'వర్షం అవకాశం', forecast90: '90 నిమిషాల అంచనా',
-    aiAssistant: 'AI వాతావరణ సహాయకుడు',
     aiSub: 'ప్రస్తుత వాతావరణం, హెచ్చరికలు మరియు వాతావరణ సందర్భం గురించి తక్షణ సమాధానాలు పొందండి.',
     footerBuilt: 'SIH 2026 కోసం నిర్మించబడింది',
     locationWait: 'మీ స్థానం వెతుకుతోంది...',
     locationSub: 'మీ ప్రాంతాన్ని కనుగొంటోంది.',
     locationTimedOut: 'స్థానం ఆలస్యమైంది. మాన్యువల్‌గా వెతకండి.',
-    locationPrivacy: 'మీ స్థానం మీ పరికరంలోనే ఉంటుంది',
     rainChanceSub: 'తదుపరి 90 నిమిషాల్లో వర్షం అవకాశం',
     areaResults: 'ప్రాంత ఫలితాలు',
   },
 }
 
-/**
- * How many suggestion chips the entry screen shows. A fixed prefix of the
- * dictionary list — so it is the same on every render and in every language,
- * with no randomness. The chat panel offers no chips of its own.
- */
-const ONBOARDING_SUGGESTION_LIMIT = 3
 
 function Skeleton({ className = '' }: { className?: string }) {
   return <span className={`skeleton ${className}`} aria-hidden="true" />
@@ -435,6 +432,23 @@ function rainLevelOf(value: number): RainLevel {
   if (value < 3) return 'light'
   if (value < 7) return 'moderate'
   return 'heavy'
+}
+
+/**
+ * How hard the dashboard backdrop rains, 0–1.
+ *
+ * Deliberately routed through `rainLevelOf` rather than scaling mm/hr directly,
+ * so the backdrop and the forecast timeline can never disagree about what
+ * counts as moderate. `none` returns 0 and the caller renders no canvas at all
+ * — a dry Hyderabad is a still page.
+ */
+function rainIntensityOf(of: RainLevel): number {
+  switch (of) {
+    case 'none': return 0
+    case 'light': return 0.25
+    case 'moderate': return 0.6
+    case 'heavy': return 1
+  }
 }
 
 function rainIcon(of: RainLevel) {
@@ -481,15 +495,20 @@ export default function Page() {
   const [locating, setLocating] = useState(false)
   const [locationTimedOut, setLocationTimedOut] = useState(false)
   const [error, setError] = useState('')
-  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([
-    { role: 'bot', text: 'I can help you read the current weather, rainfall, official alerts, and how today compares with normal.' },
-  ])
+  // Starts empty. A greeting bubble that lists what you may ask is a chatbot
+  // tell, not information — the input's own placeholder already says what to do,
+  // and an empty transcript lets the panel open at the height of its controls
+  // instead of a screenful of preamble.
+  const [chatMessages, setChatMessages] = useState<ChatMsg[]>([])
   const [chatInput, setChatInput] = useState('')
   const [chatLoading, setChatLoading] = useState(false)
+  // Whether the Dynamic Island is showing its conversation. Deliberately not
+  // persisted: the island opens on a deliberate tap, and a page that loads with a
+  // panel already covering the hero is a panel the visitor did not ask for.
+  const [islandOpen, setIslandOpen] = useState(false)
   // A question typed on the entry screen, before any session exists. It is held
   // here and sent once the session has started and the first reading has settled
   // — never before, so the answer is grounded in real weather.
-  const [onboardingAsk, setOnboardingAsk] = useState('')
   const pendingQuestionRef = useRef<string | null>(null)
 
   // ── Demo mode (presentation only) ──
@@ -632,6 +651,9 @@ export default function Page() {
                 rainChance: weather.rainChance,
                 risk: weather.risk,
                 forecast: weather.forecast,
+                // Without this the assistant only sees 90 minutes and answers
+                // "will it rain today?" from a window that cannot support it.
+                outlook: weather.outlook,
                 updatedAt: weather.updatedAt,
                 source: weather.source,
                 alerts: weather.officialAlerts ?? [],
@@ -661,10 +683,32 @@ export default function Page() {
     }
   }, [chatMessages, weather, language, t])
 
+  /*
+   * One input, two destinations. On the dashboard the question goes straight
+   * to the assistant. On the entry screen there is no reading to answer
+   * against yet, so it is parked and the session starts instead — askAndBegin
+   * and the effect under it deliver the question once the first load settles.
+   */
   const handleChatSubmit = (e: FormEvent) => {
     e.preventDefault()
+    if (!started) {
+      askAndBegin(chatInput)
+      return
+    }
     sendChat(chatInput)
   }
+
+  /**
+   * Ask about something the page is already showing — a warning card, say.
+   *
+   * Opens the island first so the answer arrives somewhere the user is looking.
+   * Previously this sent silently into a chat section further down the page, and
+   * the reply landed off-screen with nothing to indicate anything had happened.
+   */
+  const askInIsland = useCallback((question: string) => {
+    setIslandOpen(true)
+    sendChat(question)
+  }, [sendChat])
 
   /**
    * Ask-first entry: park the question, then start the session exactly the way
@@ -675,7 +719,7 @@ export default function Page() {
     const trimmed = question.trim()
     if (!trimmed) return
     pendingQuestionRef.current = trimmed
-    setOnboardingAsk('')
+    setChatInput('')
     begin(true)
   }, [begin])
 
@@ -703,16 +747,15 @@ export default function Page() {
 
   // While the picker is open, Escape closes it and the page behind it stops
   // scrolling — standard modal behaviour, so the dialog does not feel bolted on.
+  // The lock is the shared reference-counted one, because the island can be open
+  // at the same time and two effects each restoring `body.style.overflow` would
+  // unlock the page the moment the first of them closed.
+  useBodyScrollLock(demoModalOpen)
   useEffect(() => {
     if (!demoModalOpen) return
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setDemoModalOpen(false) }
     window.addEventListener('keydown', onKey)
-    const prevOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prevOverflow
-    }
+    return () => window.removeEventListener('keydown', onKey)
   }, [demoModalOpen])
 
   /*
@@ -806,6 +849,89 @@ export default function Page() {
     </div>
   ) : null
 
+  const riskText = { high: t.high, moderate: t.moderate, safe: t.safe }[risk]
+
+  // "Updated" is the provider's observation instant, carried in provenance
+  // (updatedAt mirrors it). An unparseable timestamp shows as unknown rather
+  // than as "Invalid Date".
+  const observedAt = weather?.provenance?.observedAt || weather?.updatedAt
+  const observedDate = observedAt ? new Date(observedAt) : null
+
+  // Context handed to the assistant's chip strip. Built only from fields the
+  // reading actually carries — no field is defaulted, so a chip that cannot be
+  // sourced is simply not rendered. `undefined` while there is no reading at all,
+  // which is the entry screen's normal state.
+  const chatContext: ChatContext | undefined = weather
+    ? {
+        area: weather.area,
+        temperature: weather.temperature,
+        condition: weather.condition,
+        rain: weather.rain,
+        risk: weather.risk,
+        observedAt: observedAt,
+        source: weather.provenance?.source || weather.source,
+        labels: {
+          noRain: t.none,
+          risk: riskText,
+          // Relative age of the provider's observation. Dropped when the
+          // timestamp is unparseable.
+          freshness: observedDate && !Number.isNaN(observedDate.getTime())
+            ? `${t.updated} ${timeAgo(observedDate)}`
+            : undefined,
+        },
+      }
+    : undefined
+
+  /*
+   * The assistant, as a Dynamic Island. It floats over the top of the page in
+   * every state, so the chat is one tap away from anywhere without a section of
+   * its own. Built once here and rendered by both the entry screen and the
+   * dashboard: it is the only ask affordance the app has, so it cannot be a
+   * thing you have to get past the front door to reach.
+   *
+   * Every piece of chat state still lives in the page — the island is a surface,
+   * not a second implementation — which is also why collapsing it mid-question
+   * does not cancel anything: the answer lands in the transcript and is waiting
+   * when it reopens. That is what carries a question asked on the entry screen
+   * across into the dashboard.
+   */
+  const islandNode = (
+    <DynamicIsland
+      open={islandOpen}
+      onOpenChange={setIslandOpen}
+      mark={<CharminarMark size={15} />}
+      copy={{
+        hint: t.islandHint,
+        label: t.askNav,
+        title: t.ask,
+        close: t.islandClose,
+      }}
+    >
+      <ChatPanel
+        messages={chatMessages}
+        input={chatInput}
+        loading={chatLoading}
+        onInputChange={setChatInput}
+        onSubmit={handleChatSubmit}
+        copy={{
+          title: t.ask,
+          placeholder: t.chatPlaceholder,
+          sending: t.sending,
+          contextLabel: t.chatContextLabel,
+          send: t.chatSend,
+          voiceListen: t.voiceListen,
+          voiceListening: t.voiceListening,
+          voiceSpeak: t.voiceSpeak,
+          voiceStopSpeaking: t.voiceStopSpeaking,
+          voiceDenied: t.voiceDenied,
+          voiceNoSpeech: t.voiceNoSpeech,
+        }}
+        context={chatContext}
+        lang={SPEECH_LANG[language]}
+      />
+    </DynamicIsland>
+  )
+
   if (locating) {
     // Lit like the welcome screen it follows. Without this the sequence would
     // flash bright → black → dashboard while the fix is being acquired.
@@ -814,7 +940,6 @@ export default function Page() {
         <WeatherAurora condition={weather?.condition} rain={weather?.rain} tone="bright" />
         <div className="onboarding-inner">
           <div className="location-icon loading-orbit"><LocateFixed /></div>
-          <Label>{t.aiKicker}</Label>
           <h1>WeatherGPT</h1>
           <div className="location-wait"><span className="loading-spinner" />{t.locationWait}</div>
           <p>{t.locationSub}</p>
@@ -825,14 +950,25 @@ export default function Page() {
 
   if (!started) {
     return (
-      /* One screen, ask-first: the prompt box is the primary control, so the
-         first thing a visitor can do is put a question to the assistant. The
-         two location buttons still work exactly as before — they are the
-         secondary path, not the only one. */
+      /* The front door. Everything here earns its place: the wordmark, one line
+         saying what this is, one way in, and one fallback for when sharing a
+         location isn't an option. The Hyderabad horizon holds the base of the
+         frame so the screen is somewhere rather than nowhere, and the island
+         above carries the ask, so nothing here competes with it. */
       <main className="onboarding onboarding-entry onboarding-lit">
+        {/* The only ask affordance the app has, so it is here too: a visitor can
+            put a question before choosing how to share a location. Submitting
+            from here parks the question and enters the dashboard — see
+            askAndBegin. */}
+        {islandNode}
         <WeatherAurora condition={weather?.condition} rain={weather?.rain} tone="bright" />
         {/* Dark streaks: the default white ones are invisible on a bright sky. */}
         <RainBackdrop color="30,41,59" />
+        {/* Hyderabad, drawn low across the base — the same horizon the dashboard
+            hero stands on, so the entry screen is somewhere rather than
+            nowhere. Keeps .skyline-horizon's z-index 0, which puts it under
+            the rain canvas above: the streaks fall onto the buildings. */}
+        <SkylineHorizon className="onboarding-skyline" />
         {/* Language is chosen here, before anything is asked — the dashboard is
             not the first place a Hindi or Telugu speaker should find it. Same
             control as the topbar's, so switching persists into the dashboard.
@@ -859,46 +995,22 @@ export default function Page() {
           <h1>WeatherGPT</h1>
           <p className="onboarding-tagline">{locationTimedOut ? t.locationTimedOut : t.aiTagline}</p>
 
-          <form
-            className="chat-input onboarding-ask"
-            onSubmit={(e) => { e.preventDefault(); askAndBegin(onboardingAsk) }}
-          >
-            <input
-              value={onboardingAsk}
-              onChange={(e) => setOnboardingAsk(e.target.value)}
-              placeholder={t.chatPlaceholder}
-              aria-label={t.ask}
-            />
-            <MetalButton
-              type="submit"
-              aria-label={t.chatSend}
-              disabled={!onboardingAsk.trim()}
-              className="h-9 gap-1.5 rounded-full px-3.5 text-xs"
-            >
-              <Send size={14} />
-              <span>{t.chatSend}</span>
-            </MetalButton>
-          </form>
+          {/* One filled control, one link. Sharing a location is what makes every
+              reading on the next screen possible, so it is the only thing here
+              with weight; searching by name is the fallback and is written as
+              one. Two equally-weighted buttons made the visitor choose between
+              options that looked identical.
 
-          {/* Same prompt list the assistant offers, so the gate promises nothing
-              the dashboard does not already answer. */}
-          <div className="chat-suggestions onboarding-suggestions">
-            {t.suggestions.slice(0, ONBOARDING_SUGGESTION_LIMIT).map((q) => (
-              <button key={q} type="button" onClick={() => askAndBegin(q)}>{q}</button>
-            ))}
-          </div>
-
-          <div className="onboarding-divider"><span>{t.orLabel}</span></div>
-
+              The link sits outside .onboarding-actions on purpose — see the
+              note on .onboarding-alt in globals.css. */}
           <div className="onboarding-actions">
             <LiquidButton type="button" size="lg" onClick={() => begin()}>
               <LocateFixed size={16} />{t.allow}
             </LiquidButton>
-            <LiquidButton type="button" size="lg" onClick={() => begin(true)}>
-              <Search size={16} />{t.manual}
-            </LiquidButton>
           </div>
-          <small><ShieldCheck size={13} />{t.locationPrivacy}</small>
+          <button type="button" className="onboarding-alt" onClick={() => begin(true)}>
+            <Search size={14} />{t.manual}
+          </button>
         </div>
         {demoModalNode}
       </main>
@@ -909,14 +1021,8 @@ export default function Page() {
     ? weather.forecast
     : [{ label: '+30m', value: 0 }, { label: '+60m', value: 0 }, { label: '+90m', value: 0 }]
 
-  const riskText = { high: t.high, moderate: t.moderate, safe: t.safe }[risk]
   const trend = forecastTrend(forecast)
 
-  // "Updated" is the provider's observation instant, carried in provenance
-  // (updatedAt mirrors it). An unparseable timestamp shows as unknown rather
-  // than as "Invalid Date".
-  const observedAt = weather?.provenance?.observedAt || weather?.updatedAt
-  const observedDate = observedAt ? new Date(observedAt) : null
   const lastUpdated = observedDate && !Number.isNaN(observedDate.getTime())
     ? observedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     : '—'
@@ -928,30 +1034,6 @@ export default function Page() {
       ? t.notAvailable
       : '—'
 
-  // Context handed to the assistant's chip strip. Built only from fields the
-  // reading actually carries — no field is defaulted, so a chip that cannot be
-  // sourced is simply not rendered. `undefined` while there is no reading at all.
-  const chatContext: ChatContext | undefined = weather
-    ? {
-        area: weather.area,
-        temperature: weather.temperature,
-        condition: weather.condition,
-        rain: weather.rain,
-        risk: weather.risk,
-        observedAt: observedAt,
-        source: weather.provenance?.source || weather.source,
-        labels: {
-          noRain: t.none,
-          risk: riskText,
-          // Relative age of the provider's observation. Dropped when the
-          // timestamp is unparseable.
-          freshness: observedDate && !Number.isNaN(observedDate.getTime())
-            ? `${t.updated} ${timeAgo(observedDate)}`
-            : undefined,
-        },
-      }
-    : undefined
-
   return (
     <main className="site-shell">
       {/* A deep wash behind the header and hero only, masked so it dissolves into
@@ -962,6 +1044,8 @@ export default function Page() {
         tone="deep"
         className="hero-aurora"
       />
+      {islandNode}
+
       <header className="topbar">
         {/* The logo is Home: it returns to the ask-first welcome screen, so a
             visitor who allowed location or searched is never stuck away from the
@@ -977,17 +1061,18 @@ export default function Page() {
             if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setStarted(false) }
           }}
         >
-          <div className="brand-mark"><Droplets size={15} /></div>
+          <div className="brand-mark"><CharminarMark size={17} /></div>
           <strong>WeatherGPT</strong>
           <span className="beta">HYDERABAD</span>
         </div>
-        {/* Ordered to match the page order now that the assistant leads. */}
-        <nav className="topnav">
-          <a href="#ask">{t.askNav}</a>
-          <a href="#alerts">{t.alertsTitle}</a>
-          <a href="#map">{t.liveMapNav}</a>
-        </nav>
+        {/* Ordered to match the page order. "Ask" is not a link any more — the
+            island above is the ask affordance, and a nav item pointing at it
+            would sit directly beneath it saying the same thing. */}
         <div className="topbar-actions">
+          <nav className="topnav">
+            <a href="#alerts">{t.alertsTitle}</a>
+            <a href="#map">{t.liveMapNav}</a>
+          </nav>
           {demoControl}
           <div className="language-pills">
             {(['EN', 'हि', 'తె'] as Language[]).map((lang) => (
@@ -1000,8 +1085,19 @@ export default function Page() {
       </header>
 
       <section className="hero">
+        {/* The signature visual, and the only one on the page that is a reading
+            rather than a decoration: streak density comes from the measured
+            rainfall, and `none` renders no canvas at all. If it is raining in
+            Hyderabad it rains here; if it is dry the page is still. The skyline
+            sits under it, so the rain falls onto Charminar. */}
+        <SkylineHorizon />
+        {weather && rainIntensityOf(rainLevelOf(weather.rain)) > 0 && (
+          <RainBackdrop
+            className="hero-rain"
+            intensity={rainIntensityOf(rainLevelOf(weather.rain))}
+          />
+        )}
         <div className="hero-copy">
-          <Label>REAL-TIME WEATHER ANALYSIS</Label>
           <h1>{t.heroTitle}</h1>
           <p>{t.heroSub}</p>
           <form className="searchbar" onSubmit={handleSearch}>
@@ -1015,19 +1111,31 @@ export default function Page() {
             <button type="submit">Search <ArrowUpRight size={15} /></button>
           </form>
           {error && <div className="error-banner"><X size={15} />{error}</div>}
+          {/* Icons, not emoji: ⚠️/⚡/✅ render in the OS colour-emoji face, which
+              is a different typeface at a different weight sitting inside a
+              Geist sentence. Same lucide set as every other status on the page. */}
           {weather && weather.risk === 'high' && (
-            <div className="alert-banner high">
-              ⚠️ {t.high} — {weather.area}. {weather.rainfallGuidance}
+            <div className="alert-banner high alert-stacked">
+              <TriangleAlert size={15} />
+              <div className="alert-copy">
+                <strong>{t.high} — {weather.area}</strong>
+                <span>{weather.rainfallGuidance}</span>
+              </div>
             </div>
           )}
           {weather && weather.risk === 'moderate' && (
-            <div className="alert-banner moderate">
-              ⚡ {t.moderate} — {weather.area}. {weather.rainfallGuidance}
+            <div className="alert-banner moderate alert-stacked">
+              <Zap size={15} />
+              <div className="alert-copy">
+                <strong>{t.moderate} — {weather.area}</strong>
+                <span>{weather.rainfallGuidance}</span>
+              </div>
             </div>
           )}
           {weather && weather.risk === 'safe' && (
             <div className="alert-banner safe">
-              ✅ {t.safe} — {weather.area}.
+              <ShieldCheck size={15} />
+              <strong>{t.safe} — {weather.area}</strong>
             </div>
           )}
           {/* Outside the Hyderabad window the weather is real but the local
@@ -1080,33 +1188,6 @@ export default function Page() {
               </div>
             </>
           )}
-        </Card>
-      </section>
-
-      {/* The assistant is the product's primary surface, so it sits directly
-          under the hero. ChatPanel is presentational: the messages, input,
-          loading flag, scroll sentinel and submit handler are all the page's
-          existing state — the chat logic is not forked. */}
-      <section id="ask" className="wide-section primary-chat">
-        <Card className="chat-card">
-          <ChatPanel
-            messages={chatMessages}
-            input={chatInput}
-            loading={chatLoading}
-            onInputChange={setChatInput}
-            onSubmit={handleChatSubmit}
-            copy={{
-              assistant: t.aiAssistant,
-              title: t.ask,
-              subtitle: t.aiSub,
-              placeholder: t.chatPlaceholder,
-              sending: t.sending,
-              emptyHint: t.chatEmptyHint,
-              contextLabel: t.chatContextLabel,
-              send: t.chatSend,
-            }}
-            context={chatContext}
-          />
         </Card>
       </section>
 
@@ -1234,7 +1315,7 @@ export default function Page() {
           alertsAvailable={weather?.alertsAvailable}
           risk={weather?.risk}
           rainfallGuidance={weather?.rainfallGuidance}
-          onAskAboutAlert={sendChat}
+          onAskAboutAlert={askInIsland}
           copy={{
             kicker: t.alertsKicker,
             title: t.alertsTitle,

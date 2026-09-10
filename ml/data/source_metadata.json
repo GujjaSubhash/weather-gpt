@@ -1,0 +1,24 @@
+{
+  "location": {
+    "latitude": 17.385,
+    "longitude": 78.4867,
+    "timezone": "Asia/Kolkata"
+  },
+  "period": {
+    "start": "1985-01-01",
+    "end": "2024-12-31"
+  },
+  "features_source": {
+    "name": "ERA5 reanalysis via Open-Meteo Historical Weather API",
+    "endpoint": "https://archive-api.open-meteo.com/v1/archive",
+    "variable": "precipitation (mm, hourly)",
+    "resolution": "~25 km grid cell",
+    "licence": "CC-BY 4.0"
+  },
+  "labels_source": {
+    "name": "GloFAS reanalysis via Open-Meteo Flood API",
+    "endpoint": "https://flood-api.open-meteo.com/v1/flood",
+    "variable": "river_discharge (m3/s, daily)",
+    "licence": "CC-BY 4.0"
+  }
+}

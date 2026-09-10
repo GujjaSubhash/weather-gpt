@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- The favicon. Same geometry as components/brand/CharminarMark.tsx — if you
+       swap the logo, swap both. The tile is drawn in rather than left
+       transparent so the mark holds up against a light browser chrome too. -->
+  <rect width="32" height="32" rx="7" fill="#0D0D0F"/>
+  <g transform="translate(2.2 0.2) scale(1.15)" fill="#F0C987">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M2 22V7.4C2 4.6 5.6 4.6 5.6 7.4V10.4H18.4V7.4C18.4 4.6 22 4.6 22 7.4V22H2Z M8.6 22V17C8.6 14.4 10.2 12.9 12 12.6C13.8 12.9 15.4 14.4 15.4 17V22H8.6Z M12 14.4C12 14.4 9.9 17.3 9.9 18.8A2.1 2.1 0 1 0 14.1 18.8C14.1 17.3 12 14.4 12 14.4Z"/>
+  </g>
+</svg>

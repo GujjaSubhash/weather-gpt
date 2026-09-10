@@ -1,0 +1,205 @@
+{
+  "generatedAt": "2026-09-09T13:59:22Z",
+  "modelVersion": "1.0.0",
+  "split": {
+    "train": "2000-2014",
+    "validation": "2015-2019",
+    "test": "2020-2024"
+  },
+  "samples": {
+    "train": 21916,
+    "validation": 7304,
+    "test": 7308,
+    "trainPositiveRate": 0.05402,
+    "testPositiveRate": 0.08046
+  },
+  "labelDefinition": "GloFAS river discharge >= its own trailing p98 (over the previous 10 years, lagged one day) within 2 days",
+  "dischargeTrend": [
+    {
+      "period": "1995-1999",
+      "medianFlowM3s": 6.35,
+      "p99FlowM3s": 63.0
+    },
+    {
+      "period": "2000-2004",
+      "medianFlowM3s": 6.94,
+      "p99FlowM3s": 82.3
+    },
+    {
+      "period": "2005-2009",
+      "medianFlowM3s": 8.59,
+      "p99FlowM3s": 106.2
+    },
+    {
+      "period": "2010-2014",
+      "medianFlowM3s": 9.35,
+      "p99FlowM3s": 129.5
+    },
+    {
+      "period": "2015-2019",
+      "medianFlowM3s": 9.45,
+      "p99FlowM3s": 110.5
+    },
+    {
+      "period": "2020-2024",
+      "medianFlowM3s": 12.34,
+      "p99FlowM3s": 180.8
+    }
+  ],
+  "results": [
+    {
+      "model": "logistic_regression (shipped) @HIGH",
+      "threshold": 0.9175,
+      "precision": 0.6109,
+      "recall": 0.4966,
+      "f1": 0.5478,
+      "roc_auc": 0.9447,
+      "pr_auc": 0.5983,
+      "brier": 0.12865,
+      "confusion": {
+        "tn": 6534,
+        "fp": 186,
+        "fn": 296,
+        "tp": 292
+      }
+    },
+    {
+      "model": "logistic_regression (shipped) @MODERATE",
+      "threshold": 0.4364,
+      "precision": 0.2869,
+      "recall": 0.9677,
+      "f1": 0.4426,
+      "roc_auc": 0.9447,
+      "pr_auc": 0.5983,
+      "brier": 0.12865,
+      "confusion": {
+        "tn": 5306,
+        "fp": 1414,
+        "fn": 19,
+        "tp": 569
+      }
+    },
+    {
+      "model": "gradient_boosting (comparison)",
+      "threshold": 0.9175,
+      "precision": 0.6817,
+      "recall": 0.335,
+      "f1": 0.4493,
+      "roc_auc": 0.9052,
+      "pr_auc": 0.5645,
+      "brier": 0.08493,
+      "confusion": {
+        "tn": 6628,
+        "fp": 92,
+        "fn": 391,
+        "tp": 197
+      }
+    },
+    {
+      "model": "baseline rule: rain >= 7 mm/h (HIGH)",
+      "threshold": 7.0,
+      "precision": 0.1429,
+      "recall": 0.0017,
+      "f1": 0.0034,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier": null,
+      "confusion": {
+        "tn": 6714,
+        "fp": 6,
+        "fn": 587,
+        "tp": 1
+      }
+    },
+    {
+      "model": "baseline rule: rain >= 3 mm/h (MODERATE)",
+      "threshold": 3.0,
+      "precision": 0.3509,
+      "recall": 0.034,
+      "f1": 0.062,
+      "roc_auc": null,
+      "pr_auc": null,
+      "brier": null,
+      "confusion": {
+        "tn": 6683,
+        "fp": 37,
+        "fn": 568,
+        "tp": 20
+      }
+    }
+  ],
+  "ablation": [
+    {
+      "model": "rainfall only",
+      "threshold": 0.9175,
+      "precision": 0.6109,
+      "recall": 0.4966,
+      "f1": 0.5478,
+      "roc_auc": 0.9447,
+      "pr_auc": 0.5983,
+      "brier": 0.12865,
+      "confusion": {
+        "tn": 6534,
+        "fp": 186,
+        "fn": 296,
+        "tp": 292
+      },
+      "topFeature": "api_30d (+0.991)"
+    },
+    {
+      "model": "rainfall + seasonality",
+      "threshold": 0.8701,
+      "precision": 0.5847,
+      "recall": 0.5459,
+      "f1": 0.5646,
+      "roc_auc": 0.9486,
+      "pr_auc": 0.605,
+      "brier": 0.12421,
+      "confusion": {
+        "tn": 6492,
+        "fp": 228,
+        "fn": 267,
+        "tp": 321
+      },
+      "topFeature": "month_sin (-0.796)"
+    }
+  ],
+  "coefficients": [
+    {
+      "feature": "api_30d",
+      "coefficient": 0.9909
+    },
+    {
+      "feature": "wet_hours_24h",
+      "coefficient": 0.6105
+    },
+    {
+      "feature": "rain_1h",
+      "coefficient": 0.2546
+    },
+    {
+      "feature": "rain_6h",
+      "coefficient": 0.2078
+    },
+    {
+      "feature": "rain_7d",
+      "coefficient": -0.1951
+    },
+    {
+      "feature": "max_1h_in_24h",
+      "coefficient": 0.1593
+    },
+    {
+      "feature": "rain_24h",
+      "coefficient": -0.0882
+    },
+    {
+      "feature": "rain_72h",
+      "coefficient": -0.0267
+    },
+    {
+      "feature": "rain_3h",
+      "coefficient": -0.0181
+    }
+  ]
+}

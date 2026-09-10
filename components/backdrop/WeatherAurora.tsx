@@ -12,7 +12,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 
-import { variantOf, type Variant } from '@/components/chat/WeatherBot'
+import { variantOf, type Variant } from '@/lib/weather-variant'
 import { cn } from '@/lib/utils'
 
 // ~15 KB of WebGL renderer stays out of the initial bundle, and ssr:false keeps

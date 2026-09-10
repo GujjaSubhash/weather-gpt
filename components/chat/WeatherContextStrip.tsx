@@ -108,7 +108,11 @@ function buildChips(context: ChatContext): Chip[] {
 
 type WeatherContextStripProps = {
   context?: ChatContext
-  /** Localized row label, e.g. "LIVE CONTEXT". */
+  /**
+   * Names the group for a screen reader. Not painted: a tracked-out label in
+   * front of the chips cost a whole row of the panel's height and told a sighted
+   * reader nothing the chips don't already say.
+   */
   label: string
 }
 
@@ -118,8 +122,7 @@ export default function WeatherContextStrip({ context, label }: WeatherContextSt
   if (chips.length === 0) return null
 
   return (
-    <div className="chat-context">
-      <span className="chat-context-label">{label}</span>
+    <div className="chat-context" role="group" aria-label={label}>
       {/* Display-only. These are not buttons and not filters. */}
       {chips.map((chip) => (
         <span

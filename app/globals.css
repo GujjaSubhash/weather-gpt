@@ -3,32 +3,6 @@
 @import 'shadcn/tailwind.css';
 :root{--bg:#0a0a0a;--panel:#111;--panel2:#151515;--line:#252525;--text:#f5f5f5;--muted:#9ca3af;--blue:#3b82f6;--red:#ef5b67;--amber:#e3a83b;--green:#43c98b}*{box-sizing:border-box}html,body{min-width:320px;background:var(--bg)}body{margin:0;color:var(--text);font-family:Arial,Helvetica,sans-serif}button,input{font:inherit}button{color:inherit;cursor:pointer}a{color:inherit;text-decoration:none}h1,h2,h3,p{margin:0}.site-shell{min-height:100vh;background:var(--bg)}.topbar{height:64px;display:flex;align-items:center;gap:32px;padding:0 32px;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:10px;font-size:17px;letter-spacing:-.03em}.brand-mark,.ai-mark{display:grid;place-items:center;width:29px;height:29px;border:1px solid #303030;border-radius:7px;color:var(--blue);background:#121212}.beta,.kicker{color:#737373;font-size:10px;font-weight:800;letter-spacing:.12em}.topnav{display:flex;align-items:center;gap:25px;margin-left:auto;color:#9ca3af;font-size:12px}.topnav a:hover{color:var(--text)}.language-pills{display:flex;gap:2px}.language-pills button{border:0;padding:5px 7px;color:#737373;background:transparent;font-size:11px}.language-pills button.active{color:var(--text)}.hero{width:min(1200px,calc(100% - 64px));display:grid;grid-template-columns:1.55fr .85fr;gap:48px;margin:0 auto;padding:90px 0 74px;border-bottom:1px solid var(--line)}.hero-copy{display:flex;flex-direction:column;justify-content:center}.hero h1{max-width:680px;margin-top:18px;font-size:clamp(38px,5vw,58px);line-height:1.02;letter-spacing:-.065em}.hero-copy>p{max-width:610px;margin-top:22px;color:var(--muted);font-size:17px;line-height:1.6}.searchbar{display:flex;align-items:center;gap:12px;width:min(100%,610px);margin-top:34px;padding:6px 7px 6px 15px;border:1px solid #303030;border-radius:8px;background:var(--panel)}.searchbar:focus-within{border-color:var(--blue)}.searchbar input{min-width:0;flex:1;outline:0;border:0;color:var(--text);background:transparent;font-size:13px}.searchbar input::placeholder{color:#666}.searchbar button{display:flex;align-items:center;gap:6px;border:0;border-radius:6px;padding:10px 14px;color:white;background:var(--blue);font-size:12px;font-weight:700}.card{border:1px solid var(--line);border-radius:8px;background:var(--panel);transition:border-color .2s,box-shadow .2s}.card:hover{border-color:#315a9b;box-shadow:0 0 0 1px rgba(59,130,246,.1),0 12px 30px rgba(0,0,0,.2)}.hero-weather{min-height:305px;display:flex;flex-direction:column;justify-content:center;padding:26px}.card-top,.section-title{display:flex;align-items:center;justify-content:space-between;gap:15px}.hero-weather h2{margin-top:16px;font-size:25px;letter-spacing:-.045em}.temperature{margin-top:22px;font-size:92px;line-height:.85;font-weight:700;letter-spacing:-.1em}.temperature sup{font-size:25px;vertical-align:top;letter-spacing:0}.hero-condition{margin-top:13px;text-transform:capitalize;font-size:13px}.rain-pill{display:inline-flex;align-items:center;gap:6px;width:max-content;margin-top:15px;padding:7px 11px;border:1px solid #315a9b;border-radius:999px;color:#dce8ff;background:#15243e;font-size:11px;font-weight:700}.hero-footer{display:flex;justify-content:space-between;margin-top:25px;padding-top:14px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.muted{color:var(--muted)}.map-section,.results,.wide-section,footer{width:min(1200px,calc(100% - 64px));margin-inline:auto}.map-section{padding:58px 0 70px}.section-title{margin-bottom:20px}.section-title h2,.results>h2,.wide-section h2{margin-top:8px;font-size:27px;letter-spacing:-.05em}.section-title p,.wide-section p{margin-top:8px;color:var(--muted);font-size:13px}.live{display:flex;align-items:center;gap:7px;color:var(--muted);font-size:10px;font-weight:700}.live i,.online-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}.map-wrap{position:relative;overflow:hidden;border:1px solid var(--line);border-radius:8px}.weather-map{height:450px;background:#151515}.map-legend{position:absolute;z-index:500;right:14px;bottom:14px;display:flex;align-items:center;gap:7px;padding:8px 10px;border:1px solid #333;border-radius:6px;color:#ccc;background:rgba(10,10,10,.9);font-size:10px}.legend-gradient{width:70px;height:5px;border-radius:3px;background:linear-gradient(90deg,#344d9d,#42c9b8,#f7d34d,#e95d54)}.leaflet-control-zoom a{color:var(--text)!important;border-color:var(--line)!important;background:var(--panel)!important}.leaflet-control-attribution{color:#77808d!important;background:rgba(10,10,10,.8)!important}.risk-marker{position:relative;width:18px;height:18px}.risk-marker-core{position:absolute;top:50%;left:50%;z-index:2;width:12px;height:12px;margin:-6px 0 0 -6px;box-sizing:border-box;border:2px solid #fff;border-radius:50%}.risk-marker-pulse{position:absolute;top:50%;left:50%;z-index:1;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;animation:riskPulse 2s ease-out infinite}.risk-marker-high .risk-marker-core,.risk-marker-high .risk-marker-pulse{background:var(--red)}.risk-marker-moderate .risk-marker-core,.risk-marker-moderate .risk-marker-pulse{background:var(--amber)}.risk-marker-safe .risk-marker-core,.risk-marker-safe .risk-marker-pulse{background:var(--green)}.results{padding:0 0 70px}.results>.kicker{display:block;margin-bottom:18px}.results-grid{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:14px}.conditions-card,.risk-card,.forecast-card,.chat-card,.reports-card{padding:22px}.conditions-card h3,.risk-card h3,.forecast-card h3{font-size:15px}.condition-list{display:flex;flex-direction:column;gap:20px;margin-top:31px}.condition-list div{display:grid;grid-template-columns:18px 1fr auto;align-items:center;gap:9px;font-size:12px}.condition-list svg{width:15px;color:var(--muted)}.condition-list span{color:var(--muted)}.condition-list b{font-size:12px}.risk-card.risk-high{border-color:rgba(239,91,103,.5)}.risk-card.risk-moderate{border-color:rgba(227,168,59,.5)}.risk-card.risk-safe{border-color:rgba(67,201,139,.5)}.risk-title{display:flex;align-items:center;gap:9px;margin:27px 0 22px;font-size:25px;font-weight:800;letter-spacing:-.05em}.risk-dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}.risk-high .risk-dot{background:var(--red);box-shadow:0 0 10px var(--red)}.risk-moderate .risk-dot{background:var(--amber);box-shadow:0 0 10px var(--amber)}.risk-safe .risk-dot{background:var(--green);box-shadow:0 0 10px var(--green)}.info-list{display:flex;flex-direction:column;gap:14px}.info-list div{display:grid;grid-template-columns:16px 1fr;gap:8px;font-size:11px}.info-list svg{width:14px;color:var(--muted)}.info-list span{color:var(--muted)}.info-list b{grid-column:2;font-size:11px}.forecast-card{min-width:0}.forecast-chart{height:210px;margin-top:22px}.icon-btn{display:grid;place-items:center;width:28px;height:28px;border:1px solid var(--line);border-radius:6px;color:var(--muted);background:transparent}.icon-btn:hover{color:var(--text);border-color:var(--blue)}.spin{animation:spin .8s linear infinite}.forecast-trend{display:inline-flex;align-items:center;gap:5px}.forecast-trend svg{width:13px;height:13px}.rain-timeline{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:22px}.rain-slot{display:flex;flex-direction:column;align-items:center;gap:7px;padding:14px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}.rain-slot svg{width:34px;height:34px}.rain-time{font-size:10px;font-weight:700;color:var(--muted)}.rain-level{font-size:11px;font-weight:700}.rain-none .rain-level,.rain-none svg{color:var(--green)}.rain-light .rain-level,.rain-light svg{color:var(--blue)}.rain-moderate .rain-level,.rain-moderate svg{color:var(--amber)}.rain-heavy .rain-level,.rain-heavy svg{color:var(--red)}.rain-drops{display:flex;gap:4px}.rain-drops i{width:6px;height:6px;border-radius:50%;background:#333;display:block}.rain-drops i.on{background:var(--blue);box-shadow:0 0 4px var(--blue)}.rain-none .rain-drops i{display:none}.forecast-note{margin-top:12px;color:var(--muted);font-size:10px}.wide-section{padding-bottom:30px}.reports-card{display:grid;grid-template-columns:1fr 1.2fr;gap:70px;align-items:center}.chat-card{display:grid;grid-template-columns:1fr;gap:22px;align-items:start}.chat-intro h2,.reports-card h2{margin-top:10px}.chat-intro{display:flex;align-items:flex-start;gap:14px}.chat-intro .ai-mark{flex:none;margin-top:3px}.chat-intro-copy{min-width:0}.chat-intro-copy .kicker{display:block}.chat-intro p{max-width:640px}.chat-panel{min-width:0}.chat-messages{display:flex;flex-direction:column;gap:10px;min-height:260px;max-height:460px;overflow-y:auto;padding-right:4px;scrollbar-width:thin;scrollbar-color:#333 transparent}.chat-messages:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:6px}.chat-messages::-webkit-scrollbar{width:6px}.chat-messages::-webkit-scrollbar-thumb{border-radius:3px;background:#333}.bot-bubble{margin-bottom:16px;padding:14px;border-left:2px solid var(--blue);color:#c4c9d2;background:#171717;font-size:12.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:break-word}.user-bubble{align-self:flex-end;max-width:82%;margin-bottom:16px;padding:12px 14px;border:1px solid #315a9b;border-radius:8px 8px 2px 8px;color:#dce8ff;background:#15243e;font-size:12.5px;line-height:1.55;overflow-wrap:break-word}.chat-suggestions{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:16px}.chat-suggestions button{min-height:32px;padding:7px 11px;border:1px solid var(--line);border-radius:999px;color:var(--muted);background:var(--panel2);font-size:11px;text-align:left}.chat-suggestions button:hover{border-color:var(--blue);color:var(--text)}.chat-suggestions button:focus-visible{outline:2px solid var(--blue);outline-offset:2px}.chat-input{display:flex;align-items:center;gap:8px;margin-top:16px;padding:7px 8px 7px 14px;border:1px solid #303030;border-radius:9px;background:var(--panel2)}.chat-input:focus-within{border-color:var(--blue);box-shadow:0 0 0 1px rgba(59,130,246,.3)}.chat-input input{min-width:0;flex:1;height:40px;outline:0;border:0;color:var(--text);background:transparent;font-size:13px}.chat-input input::placeholder{color:#666}.chat-input input:disabled{color:var(--muted)}.chat-message{margin-top:10px;color:var(--blue);font-size:11px}.reports-card{margin-bottom:22px}.report-empty{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:16px 0;color:var(--muted);font-size:12px}.report-empty svg{color:var(--blue)}.report-empty strong{color:var(--text);font-size:13px}.report-empty .button{width:auto;margin-top:8px}.button{display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 15px;border:1px solid transparent;border-radius:7px;font-size:11px;font-weight:700}.button.primary{color:white;background:var(--blue)}.button.secondary{color:var(--text);border-color:var(--line);background:var(--panel2)}.error-banner{display:flex;align-items:center;gap:7px;margin-top:14px;color:#ff9da5;font-size:11px}.alert-banner{display:flex;align-items:center;gap:8px;width:min(100%,610px);margin-top:16px;padding:11px 13px;border:1px solid var(--line);border-left-width:3px;border-radius:7px;font-size:12px;font-weight:700;line-height:1.45}.alert-banner svg{flex:none}.alert-banner.high{border-color:rgba(239,91,103,.45);border-left-color:var(--red);color:#ffc2c7;background:rgba(239,91,103,.09)}.alert-banner.moderate{border-color:rgba(227,168,59,.45);border-left-color:var(--amber);color:#f5dca6;background:rgba(227,168,59,.09)}.alert-banner.safe{border-color:rgba(67,201,139,.45);border-left-color:var(--green);color:#a9e8c9;background:rgba(67,201,139,.08)}.alert-banner.notice{border-color:#315a9b;border-left-color:var(--blue);color:#dce8ff;background:rgba(59,130,246,.08);font-weight:400}.skeleton{display:block;border-radius:5px;background:linear-gradient(90deg,#1c1c1c,#323232,#1c1c1c);background-size:200% 100%;animation:shimmer 1.4s infinite}.skeleton-line{width:100px;height:9px}.skeleton-line.medium{width:160px}.skeleton-temp{width:170px;height:78px;margin:24px 0 11px}.skeleton-value{width:55px;height:14px}.onboarding{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;background:var(--bg)}.location-icon{display:grid;place-items:center;width:76px;height:76px;margin-bottom:24px;border:1px solid var(--line);border-radius:12px;color:var(--blue);background:var(--panel)}.onboarding h1{font-size:42px;letter-spacing:-.08em}.onboarding p{max-width:290px;margin-top:12px;color:var(--muted);font-size:13px;line-height:1.55}.onboarding-actions{width:min(100%,280px);display:flex;flex-direction:column;gap:8px;margin-top:27px}.onboarding small{display:flex;align-items:center;gap:5px;margin-top:20px;color:#656c77;font-size:10px}.location-wait{display:flex;align-items:center;gap:8px;margin-top:22px;font-size:13px;font-weight:700}.loading-spinner{width:15px;height:15px;border:2px solid #39404b;border-top-color:var(--blue);border-radius:50%;animation:spin .8s linear infinite}.loading-orbit{position:relative}.loading-orbit::after{content:'';position:absolute;inset:-7px;border:1px solid transparent;border-top-color:var(--blue);border-right-color:rgba(59,130,246,.35);border-radius:15px;animation:spin 1.1s linear infinite}footer{display:flex;justify-content:space-between;padding:24px 0 34px;border-top:1px solid var(--line);color:#737373;font-size:10px}.primary-chat{padding:44px 0 54px}.primary-chat .chat-card{padding:30px 32px;border-color:#315a9b;box-shadow:0 0 0 1px rgba(59,130,246,.1),0 14px 34px rgba(0,0,0,.26)}.chat-thinking{display:flex;align-items:center;gap:8px}.chat-thinking .loading-spinner{flex:none;width:12px;height:12px}.chat-empty-hint{max-width:640px;margin-top:14px;color:var(--muted);font-size:12px;line-height:1.55}.chat-context{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}.chat-context-label{color:#737373;font-size:10px;font-weight:800;letter-spacing:.12em}.chat-chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:#c4c9d2;background:var(--panel2);font-size:11px;line-height:1.3;white-space:nowrap}.chat-chip svg{flex:none;width:12px;height:12px;color:var(--muted)}.chat-chip-condition{text-transform:capitalize;white-space:normal}.chat-chip-freshness{color:var(--muted)}.chat-chip-risk{font-weight:700}.chat-chip-risk-high{border-color:rgba(239,91,103,.45);color:#ffc2c7;background:rgba(239,91,103,.09)}.chat-chip-risk-high svg{color:var(--red)}.chat-chip-risk-moderate{border-color:rgba(227,168,59,.45);color:#f5dca6;background:rgba(227,168,59,.09)}.chat-chip-risk-moderate svg{color:var(--amber)}.chat-chip-risk-safe{border-color:rgba(67,201,139,.45);color:#a9e8c9;background:rgba(67,201,139,.08)}.chat-chip-risk-safe svg{color:var(--green)}.onboarding p.onboarding-tagline{max-width:430px}.onboarding-ask{width:min(100%,440px);margin-top:26px;text-align:left}.onboarding-suggestions{width:min(100%,440px);justify-content:center;margin-top:14px}.onboarding .onboarding-actions{width:min(100%,440px);flex-direction:row;flex-wrap:wrap;margin-top:24px}.onboarding-actions .button{flex:1 1 auto}.card-top>div>.kicker{display:block;margin-bottom:6px}.alerts-section{padding:0 0 44px}.alerts-mark{flex:none;color:var(--amber)}.alerts-body{display:flex;flex-direction:column;gap:14px}.alerts-body .alert-banner{width:100%;margin-top:0}.alert-stacked{align-items:flex-start}.alert-stacked>svg{margin-top:1px}.alert-copy{display:flex;flex-direction:column;gap:5px;min-width:0}.alert-copy strong{font-size:12.5px;font-weight:700;line-height:1.45}.alert-copy span{color:var(--muted);font-size:11px;font-weight:400;line-height:1.55}.alert-card{padding:18px;border:1px solid rgba(239,91,103,.45);border-left:3px solid var(--red);border-radius:7px;background:rgba(239,91,103,.07)}.alert-card-top{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.alert-official-tag{display:inline-flex;align-items:center;gap:6px;color:#ffc2c7;font-size:10px;font-weight:800;letter-spacing:.12em}.alert-official-tag svg{flex:none;color:var(--red)}.alert-issuer{color:var(--muted);font-size:11px;font-weight:700}p.alert-description{margin-top:10px;color:#f0e2e3;font-size:12.5px;line-height:1.55}.alert-meta{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;color:var(--muted);font-size:10.5px}.alert-link{display:inline-flex;align-items:center;gap:5px;color:#dce8ff}.alert-link:hover{text-decoration:underline}.alert-ask{align-self:flex-start;width:max-content;max-width:100%;margin-top:14px}.alert-derived{display:flex;flex-direction:column;gap:9px;padding-top:16px;border-top:1px solid var(--line)}.alert-derived>.kicker{display:block}p.alert-derived-note{margin-top:0;color:#737373;font-size:10.5px;line-height:1.55}.climate-card{margin-top:14px;padding:20px 22px}.climate-card h3{font-size:15px}.climate-mark{flex:none;color:var(--muted)}p.climate-note{max-width:760px;margin-top:12px;color:var(--muted);font-size:11.5px;line-height:1.6}@keyframes shimmer{to{background-position:-200% 0}}@keyframes spin{to{transform:rotate(360deg)}}@keyframes riskPulse{0%{transform:scale(1);opacity:.6}100%{transform:scale(2.6);opacity:0}}@media(prefers-reduced-motion:reduce){.risk-marker-pulse{animation:none}.loading-orbit::after{animation:none}}@media(max-width:760px){.topbar{height:auto;flex-wrap:wrap;padding:16px}.topnav{order:3;width:100%;justify-content:space-between;margin:0}.hero,.map-section,.results,.wide-section,footer{width:calc(100% - 32px)}.hero{display:flex;flex-direction:column;gap:28px;padding:56px 0 48px}.hero h1{font-size:40px}.hero-copy>p{font-size:15px}.results-grid,.chat-card,.reports-card{grid-template-columns:1fr}.results-grid{gap:12px}.chat-card,.reports-card{gap:25px}.map-section{padding:45px 0 50px}.weather-map{height:330px}footer{flex-direction:column;gap:8px}.hero-weather{min-height:280px}.primary-chat{padding:34px 0 40px}.primary-chat .chat-card{padding:20px 18px}.chat-intro p{max-width:100%}.chat-messages{min-height:220px;max-height:340px}.chat-input{padding:6px 6px 6px 12px}.chat-input input{height:42px;font-size:16px}.chat-suggestions button{min-height:40px}.chat-chip{min-height:30px}.onboarding .onboarding-actions{width:min(100%,320px);flex-direction:column}.onboarding-ask,.onboarding-suggestions{width:100%}.alerts-section{padding:0 0 30px}.alert-card{padding:15px}.alert-meta{gap:5px 10px}.climate-card{padding:18px}}
 
-/* ── Weather mascot (WeatherBot) ── */
-.weather-bot{position:relative;display:inline-grid;place-items:center;flex:none;border:1px solid #303030;border-radius:8px;background:#121212;color:var(--blue);overflow:hidden;animation:wbBob 3.2s ease-in-out infinite}
-.weather-bot .wb-face{position:relative;z-index:2;filter:drop-shadow(0 0 4px rgba(59,130,246,.5));animation:wbBreathe 3.2s ease-in-out infinite}
-.weather-bot .wb-fx{position:absolute;inset:0;z-index:1;pointer-events:none}
-.weather-bot-clear{color:var(--amber)}
-.weather-bot-clear .wb-face{filter:drop-shadow(0 0 5px rgba(227,168,59,.55))}
-.wb-sun{position:absolute;top:50%;left:50%;width:120%;height:120%;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,rgba(227,168,59,.35),transparent 60%);animation:wbGlow 2.8s ease-in-out infinite}
-.weather-bot-cloud{color:var(--muted)}
-.wb-cloud{position:absolute;top:16%;left:50%;width:50%;height:22%;transform:translateX(-50%);border-radius:999px;background:rgba(156,163,175,.55);animation:wbDrift 3.6s ease-in-out infinite}
-.wb-cloud::before{content:'';position:absolute;top:-40%;left:22%;width:46%;height:100%;border-radius:50%;background:rgba(156,163,175,.55)}
-.wb-drop{position:absolute;top:-16%;width:2px;height:24%;border-radius:2px;background:linear-gradient(to bottom,rgba(59,130,246,0),var(--blue));opacity:0;animation:wbRain 1.1s linear infinite}
-.wb-drop:nth-child(1){left:30%;animation-delay:0s}
-.wb-drop:nth-child(2){left:50%;animation-delay:.35s}
-.wb-drop:nth-child(3){left:70%;animation-delay:.7s}
-.weather-bot-storm{color:var(--amber)}
-.weather-bot-storm .wb-drop{background:linear-gradient(to bottom,rgba(227,168,59,0),var(--amber))}
-.wb-bolt{position:absolute;top:20%;left:50%;width:60%;height:60%;transform:translateX(-50%);background:radial-gradient(circle at 50% 30%,rgba(255,240,190,.85),transparent 55%);opacity:0;animation:wbBolt 2.4s steps(1) infinite}
-@keyframes wbBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@keyframes wbBreathe{0%,100%{opacity:.85}50%{opacity:1}}
-@keyframes wbGlow{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(.9)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.08)}}
-@keyframes wbDrift{0%,100%{transform:translateX(-62%)}50%{transform:translateX(-38%)}}
-@keyframes wbRain{0%{transform:translateY(0);opacity:0}12%{opacity:.9}88%{opacity:.9}100%{transform:translateY(320%);opacity:0}}
-@keyframes wbBolt{0%,92%,100%{opacity:0}94%{opacity:1}96%{opacity:.2}98%{opacity:.9}}
-.chat-intro .weather-bot{margin-top:3px}
-.chat-input-bot{margin-right:2px}
-
 /* ── Map drizzle overlay ── */
 /* width/height 100% are required: a <canvas>'s width/height attributes map to a
    CSS presentation hint (default 300x150), so inset:0 alone can't stretch it —
@@ -36,15 +10,18 @@
 .map-rain{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:500;border-radius:12px}
 
 /* ── Entry screen ── */
-/* One screen, ask-first: wordmark, prompt box, quick asks, then the location
-   buttons as the quieter secondary path. Deliberately near-monochrome — the
-   wordmark is the only thing with full contrast, and every control sits on a
-   thin border with no fill, so nothing else competes for attention.
+/* The front door: kicker, wordmark, one line of what this is, one way in, and
+   the Hyderabad horizon holding the base of the frame. Deliberately
+   near-monochrome — the wordmark is the only thing at full contrast — and
+   deliberately not spare for its own sake: the prompt box and the quick-ask
+   chips that used to sit here moved into the island, and subtraction alone
+   left a stack floating in the middle of a black page, which is the look of a
+   screen nobody composed.
    The rain canvas needs explicit width/height for the same reason .map-rain
    does (see above); it is held at low opacity so it reads as texture. */
 .onboarding{position:relative}
 .onboarding-langs{position:absolute;z-index:3;top:20px;right:24px}
-.onboarding-entry{overflow:hidden;justify-content:center;padding:64px 24px;background:var(--bg)}
+.onboarding-entry{overflow:hidden;justify-content:center;padding:64px 24px 84px;background:var(--bg)}
 .rain-backdrop{position:absolute;inset:0;z-index:1;width:100%;height:100%;opacity:.5;pointer-events:none}
 .onboarding-inner{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;width:min(100%,620px)}
 /* Hero display type: 64px at the cap, which is the top of the spec band. It used
@@ -52,34 +29,42 @@
 .onboarding-entry h1{color:#fff;font-size:clamp(38px,7.2vw,64px);font-weight:600;line-height:1.04;letter-spacing:-.034em}
 .onboarding-entry p.onboarding-tagline{max-width:520px;margin-top:20px;color:var(--muted);font-size:17px;font-weight:400;line-height:1.6;letter-spacing:-.011em}
 
-/* The prompt box is the primary control, so it is the largest thing here —
-   but it earns that through size alone, not colour. */
-.onboarding-entry .onboarding-ask{width:100%;margin-top:38px;padding:8px 9px 8px 16px;border-color:#2a2a2a;border-radius:13px;background:#101010;box-shadow:none}
-.onboarding-entry .onboarding-ask:focus-within{border-color:#3f3f3f;box-shadow:none}
-.onboarding-entry .onboarding-ask input{height:46px;color:#fff;font-size:15px}
-.onboarding-entry .onboarding-ask input::placeholder{color:#5f5f5f}
-/* The mascot and the bordered send button that used to live in this form are
-   gone — the mascot now appears only in the chat intro header, and both send
-   controls are MetalButton, which carries its own geometry and disabled state.
-   Every .chat-send rule is deleted for the same reason: no element carries the
-   class any more, and leaving them would only fight the component. */
+/* The kicker the locating screen already shows, so entry → locating →
+   dashboard reads as one sequence rather than three unrelated screens. Wider
+   tracking than the in-page .kicker: it is carrying a 64px wordmark and needs
+   the air. */
+.onboarding-entry .kicker{margin-bottom:20px;color:#79808c;font-size:11px;letter-spacing:.2em}
 
-/* Soft suggestions, not buttons: hairline border, no fill, small light text.
-   Held on one horizontal row under the input at every width — narrow screens
-   scroll the row sideways rather than stacking it into a vertical list. */
-.onboarding-entry .onboarding-suggestions{flex-wrap:nowrap;justify-content:center;gap:7px;width:100%;margin-top:15px;overflow-x:auto;scrollbar-width:none}
-.onboarding-entry .onboarding-suggestions::-webkit-scrollbar{display:none}
-.onboarding-entry .onboarding-suggestions button{flex:none;min-height:30px;padding:6px 13px;border-color:#242424;color:#7d7d7d;background:transparent;font-size:13px;font-weight:400;letter-spacing:-.006em;white-space:nowrap}
-.onboarding-entry .onboarding-suggestions button:hover{border-color:#3d3d3d;color:#d4d4d4;background:transparent}
+/* One primary action. Two identically-weighted buttons side by side was the
+   most templated thing on the page — it asked the visitor to choose between
+   two equal-looking options when one of them is plainly the main path. */
+.onboarding-entry .onboarding-actions{width:min(100%,320px);margin-top:36px}
+.onboarding-entry .onboarding-actions>button{width:100%;height:47px;font-size:14.5px;letter-spacing:-.008em}
 
-/* "OR" rule: marks the location buttons as the alternative path without
-   shouting. Pure separator, so it carries no meaning of its own. */
-.onboarding-divider{display:flex;align-items:center;gap:14px;width:min(100%,320px);margin-top:36px;color:#555;font-size:11px;font-weight:500;letter-spacing:.08em}
-.onboarding-divider::before,.onboarding-divider::after{content:'';flex:1;height:1px;background:#1e1e1e}
+/* The fallback path, written as a link instead of dressed as a second primary.
+   A real underline rather than a border, so it reads as the quieter option at
+   a glance and not as a button someone forgot to fill.
 
-.onboarding-entry .onboarding-actions{width:min(100%,380px);margin-top:18px;gap:9px}
-.onboarding-entry .onboarding-actions .button{min-height:42px;border-color:#282828;color:#9a9a9a;background:transparent;font-size:14px;font-weight:500;letter-spacing:-.008em}
-.onboarding-entry .onboarding-actions .button:hover{border-color:#404040;color:#fff;background:transparent}
+   Deliberately a SIBLING of .onboarding-actions rather than its second child:
+   the lit theme styles `.onboarding-lit .onboarding-actions>button` (colour,
+   weight, and width:100% on mobile), all of which would land on this and undo
+   the distinction the two controls are supposed to have. */
+.onboarding-alt{display:inline-flex;align-items:center;gap:7px;margin-top:16px;padding:4px 2px;border:0;background:transparent;color:#8b93a1;font-size:13px;font-weight:400;letter-spacing:-.006em;text-decoration:underline;text-decoration-color:#3a3f48;text-underline-offset:4px;transition:color .18s,text-decoration-color .18s}
+.onboarding-alt:hover{color:#fff;text-decoration-color:#7a828f}
+.onboarding-alt:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:4px}
+.onboarding-alt svg{flex:none;opacity:.75}
+
+/* The Hyderabad horizon, carried over from the dashboard hero so the entry
+   screen stands somewhere instead of floating. Taller here than in the hero
+   because it is holding a whole viewport rather than the base of one section,
+   and it keeps .skyline-horizon's z-index 0 — under the rain canvas, so the
+   streaks fall onto the buildings and not in front of them. */
+.onboarding-skyline{height:clamp(96px,14vw,168px);color:#16202f}
+
+@media (max-width:760px){
+  .onboarding-entry{padding:56px 18px 64px}
+  .onboarding-skyline{height:clamp(72px,20vw,120px)}
+}
 .onboarding-entry small{margin-top:24px;color:#5a5a5a}
 
 /* ── Climate context (real normals + today vs normal) ── */
@@ -100,7 +85,7 @@
 .climate-verdict-cool{color:#a8c9f5}
 .climate-verdict-normal{color:#a9e8c9}
 p.climate-source{margin-top:14px;padding-top:13px;border-top:1px solid var(--line);color:#737373;font-size:12px;line-height:1.6;letter-spacing:-.004em}
-@media(max-width:760px){.climate-grid{grid-template-columns:1fr}.onboarding-langs{top:14px;right:14px}.onboarding-entry{padding:56px 18px}.onboarding-entry p.onboarding-tagline{font-size:15px}.onboarding-entry .onboarding-ask{margin-top:30px}.onboarding-entry .onboarding-ask input{height:44px;font-size:16px}.onboarding-entry .onboarding-suggestions{justify-content:flex-start;padding-right:16px;-webkit-mask-image:linear-gradient(90deg,#000 80%,transparent);mask-image:linear-gradient(90deg,#000 80%,transparent)}.onboarding-entry .onboarding-suggestions button{min-height:32px}.onboarding-entry .onboarding-actions{flex-direction:column}}
+@media(max-width:760px){.climate-grid{grid-template-columns:1fr}.onboarding-langs{top:14px;right:14px}.onboarding-entry p.onboarding-tagline{font-size:15px}}
 
 /* ── Clickable logo (Home) ── */
 .brand{cursor:pointer}
@@ -115,6 +100,12 @@ p.climate-source{margin-top:14px;padding-top:13px;border-top:1px solid var(--lin
    a real reading. None of this fires on its own; it is only ever a click away
    and one click back. */
 .topbar-actions{display:flex;align-items:center;gap:14px}
+/* The island took the centre of the header, so the nav moved in here — and the
+   whole cluster is now what gets pushed right. The legacy `.topnav{margin-left:
+   auto}` cannot do it any more: the nav is no longer a child of .topbar, and
+   inside this shrink-wrapped box an auto margin resolves to nothing. */
+.topbar-actions{margin-left:auto;gap:18px}
+.topbar-actions .topnav{gap:20px;margin:0}
 .onboarding-langs{display:flex;align-items:center;gap:10px}
 
 /* Resting state: outlined, footer-grey, deliberately understated. */
@@ -177,8 +168,6 @@ p.climate-source{margin-top:14px;padding-top:13px;border-top:1px solid var(--lin
 .card-top-lead{display:inline-flex;align-items:center;gap:9px;min-width:0}
 .simulated-badge{flex:none;padding:2px 8px;border:1px solid #333;border-radius:4px;color:#8a8a8a;background:#171717;font-size:10px;font-weight:600;letter-spacing:.07em}
 
-@media(prefers-reduced-motion:reduce){.weather-bot,.weather-bot .wb-face,.wb-sun,.wb-cloud,.wb-drop,.wb-bolt{animation:none}.wb-drop{opacity:.7}.wb-bolt{opacity:0}}
-
 /* ══════════════════════════════════════════════════════════════════════════
    TYPOGRAPHY SYSTEM
    ══════════════════════════════════════════════════════════════════════════
@@ -233,7 +222,6 @@ b,strong{font-weight:600}
    headings, but without re-flowing the whole block. */
 .hero-copy>p{max-width:610px;margin-top:20px;font-size:17px;font-weight:400;line-height:1.62;letter-spacing:-.011em;text-wrap:pretty}
 .section-title p,.wide-section p{margin-top:9px;font-size:15px;font-weight:400;line-height:1.6;letter-spacing:-.008em;text-wrap:pretty}
-.chat-empty-hint{margin-top:14px;font-size:14.5px;font-weight:400;line-height:1.62;letter-spacing:-.007em}
 .bot-bubble{padding:15px 16px;font-size:15px;font-weight:400;line-height:1.68;letter-spacing:-.008em}
 .user-bubble{padding:12px 15px;font-size:15px;font-weight:400;line-height:1.6;letter-spacing:-.008em}
 p.alert-description{margin-top:11px;font-size:15px;font-weight:400;line-height:1.65;letter-spacing:-.008em;text-wrap:pretty}
@@ -261,7 +249,7 @@ p.climate-note{margin-top:13px;font-size:13.5px;font-weight:400;line-height:1.65
    than the same number in mixed case. Tracking is the other half of that —
    uppercase needs some, but .12em–.18em was pulling the words apart. .07em is
    enough to keep the letters distinct and no more. */
-.beta,.kicker,.chat-context-label,.alert-official-tag{font-size:11.5px;font-weight:600;line-height:1.4;letter-spacing:.07em}
+.beta,.kicker,.alert-official-tag{font-size:11.5px;font-weight:600;line-height:1.4;letter-spacing:.07em}
 .live{font-size:11.5px;font-weight:500;letter-spacing:.055em}
 
 /* ── Labels and metadata ─────────────────────────────────────────────────── */
@@ -388,23 +376,19 @@ footer{padding:26px 0 34px;font-size:12px;font-weight:400;line-height:1.6;letter
 .onboarding-lit .location-wait{color:#26334a}
 .onboarding-lit .onboarding-inner>p{color:#2c3a4e}
 
-/* Divider hairlines: the dark-screen values disappear on a light background. */
-.onboarding-lit .onboarding-divider{color:#4a5870}
-.onboarding-lit .onboarding-divider::before,.onboarding-lit .onboarding-divider::after{background:linear-gradient(90deg,transparent,rgba(15,23,42,.22),transparent)}
-
 /* Language pills as light glass. */
 .onboarding-lit .language-pills{background:rgba(255,255,255,.42);border-color:rgba(15,23,42,.14);backdrop-filter:blur(14px) saturate(1.3)}
 .onboarding-lit .language-pills button{color:#33415a}
 .onboarding-lit .language-pills button:hover{color:#0f172a;background:rgba(255,255,255,.55)}
 .onboarding-lit .language-pills button.active{color:#0b1220;background:rgba(255,255,255,.92);box-shadow:0 1px 4px rgba(15,23,42,.14)}
 
-/* Suggestion chips: translucent white glass, dark label. */
-.onboarding-lit .onboarding-suggestions button{color:#25334a;border-color:rgba(15,23,42,.16);background:rgba(255,255,255,.5);backdrop-filter:blur(12px) saturate(1.25);box-shadow:0 1px 3px rgba(15,23,42,.07)}
-.onboarding-lit .onboarding-suggestions button:hover{color:#0b1220;border-color:rgba(15,23,42,.3);background:rgba(255,255,255,.72);transform:translateY(-1px);box-shadow:0 4px 12px rgba(15,23,42,.12)}
-
 /* ── The dark glass pill ─────────────────────────────────────────────────────
-   Shared by the onboarding ask box and the dashboard chat input: one recipe, so
-   the control a visitor first meets is the same one they keep using.
+   The app's one chat input, inside the Dynamic Island. This recipe used to be
+   shared with an ask box on the entry screen; that box is gone — the island is
+   now the only place a question is typed — so the selector no longer carries an
+   `.onboarding-ask` half. The rules stay here, unscoped, because the island can
+   open over either screen.
+
    backdrop-filter is what makes it read as glass rather than a flat dark box —
    it samples the moving gradient behind it.
 
@@ -412,7 +396,7 @@ footer{padding:26px 0 34px;font-size:12px;font-weight:400;line-height:1.6;letter
    -webkit- prefix itself, and if the prefixed form is written by hand it treats
    that as the authored value and drops the standard property — which silently
    removes the blur in every non-WebKit engine. */
-.onboarding-lit .onboarding-ask,.chat-panel .chat-input{
+.chat-panel .chat-input{
   border-radius:999px;
   border:1px solid rgba(255,255,255,.1);
   border-top-color:rgba(255,255,255,.22);
@@ -423,46 +407,645 @@ footer{padding:26px 0 34px;font-size:12px;font-weight:400;line-height:1.6;letter
   gap:10px;
   transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
 }
-.onboarding-lit .onboarding-ask input,.chat-panel .chat-input input{color:#f4f7fb}
+.chat-panel .chat-input input{color:#f4f7fb}
 /* MetalButton ships `disabled:cursor-default`, but Tailwind utilities live in
    @layer utilities and the base stylesheet's unlayered `button{cursor:pointer}`
    outranks every layered rule no matter its specificity. Restated here, where
    the rule is unlayered too and source order decides. */
-.onboarding-lit .onboarding-ask button:disabled,.chat-panel .chat-input button:disabled{cursor:default}
-.onboarding-lit .onboarding-ask input::placeholder,.chat-panel .chat-input input::placeholder{color:rgba(226,232,240,.5)}
-.onboarding-lit .onboarding-ask:focus-within,.chat-panel .chat-input:focus-within{
+.chat-panel .chat-input button:disabled{cursor:default}
+.chat-panel .chat-input input::placeholder{color:rgba(226,232,240,.5)}
+.chat-panel .chat-input:focus-within{
   border-color:rgba(255,255,255,.26);
   background:rgba(11,15,22,.8);
   box-shadow:0 22px 52px -18px rgba(6,10,18,.6),0 0 0 3px rgba(125,196,255,.16),inset 0 1px 0 rgba(255,255,255,.14);
 }
 
-/* The pill supplies its own rounding and padding now, so the dark-screen
-   geometry rules for the onboarding ask box would only fight it. */
-.onboarding-lit .onboarding-ask{width:min(100%,620px);margin-inline:auto}
-
 /* Liquid-glass CTAs replace the old bordered buttons; the row just spaces them. */
 .onboarding-lit .onboarding-actions{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
 .onboarding-lit .onboarding-actions>button{color:#0f172a;font-weight:530}
 
+/* Entry-screen text on the bright backdrop. The dark-theme values above are
+   for the shell's own palette; over a lit sky they would be invisible. The
+   secondary action stays clearly below the glass CTA in weight — it is the
+   fallback, and on a light background it is easy to accidentally make it read
+   as loudly as the primary. */
+.onboarding-lit .onboarding-alt{color:#33415a;text-decoration-color:rgba(15,23,42,.28)}
+.onboarding-lit .onboarding-alt:hover{color:#0b1220;text-decoration-color:rgba(15,23,42,.55)}
+
 @media (max-width:760px){
-  .onboarding-lit .onboarding-ask,.chat-panel .chat-input{padding:6px 7px 6px 16px}
+  .chat-panel .chat-input{padding:6px 7px 6px 16px}
+
+  /* The mic takes 44px out of a 375px row, which clipped the placeholder to
+     "Ask about your are…". The word "Send" is the cheapest thing to give up:
+     the arrow icon already reads as send, and the button keeps its aria-label,
+     so nothing is lost to a screen reader. */
+  .chat-panel .chat-input button[type=submit] span{display:none}
+  .chat-panel .chat-input button[type=submit]{padding-inline:10px}
   .onboarding-lit .onboarding-actions{flex-direction:column;align-items:stretch;width:min(100%,340px);margin-inline:auto}
   .onboarding-lit .onboarding-actions>button{width:100%}
   .hero-aurora{height:min(560px,72vh)}
-
-  /* The chip row scrolls sideways here rather than stacking, so the third chip
-     starts off-screen. The dark screen hinted at that by fading the row's right
-     edge to transparent, but these chips are translucent white now — a fade to
-     transparent on a bright gradient is invisible, which left the scroll with no
-     affordance at all. Taper the opacity instead: the last chip reads as dimmed
-     and clipped, which is the cue that the row continues. */
-  .onboarding-lit .onboarding-suggestions{-webkit-mask-image:linear-gradient(90deg,#000 72%,rgba(0,0,0,.25) 100%);mask-image:linear-gradient(90deg,#000 72%,rgba(0,0,0,.25) 100%)}
 }
 
 /* The gradient canvas is already suppressed in JS under reduced motion (see
-   WeatherAurora), which leaves the static fallback. This covers the CSS-only
-   pieces: nothing here should animate or lift on hover. */
+   WeatherAurora), which leaves the static fallback. This covers the one CSS
+   piece left on these screens: the glass pill must not ease between its resting
+   and focused states. */
 @media (prefers-reduced-motion:reduce){
-  .onboarding-lit .onboarding-suggestions button:hover{transform:none}
-  .onboarding-lit .onboarding-ask,.chat-panel .chat-input{transition:none}
+  .chat-panel .chat-input{transition:none}
+}
+
+/* ── Voice controls ──────────────────────────────────────────────────────────
+   Both buttons are rendered only when the browser can genuinely do the job in
+   the selected language (see lib/speech.ts), so these rules are also the
+   "supported" state — there is no disabled or greyed-out variant to style. */
+
+/* Sits between the text input and the send button inside the .chat-input flex
+   row. Circular and icon-only so it reads as secondary to Send. */
+.chat-mic{
+  flex:none;
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.14);
+  background:rgba(255,255,255,.06);
+  color:rgba(226,232,240,.82);
+  transition:background .18s ease,color .18s ease,border-color .18s ease;
+}
+.chat-mic:hover:not(:disabled){background:rgba(255,255,255,.12);color:#f4f7fb}
+.chat-mic:disabled{opacity:.45;cursor:default}
+
+/* Listening is the one state the user must not have to guess at: the mic is
+   live and audio is being transcribed. Red plus a pulse, and the icon itself
+   switches to a stop square. */
+.chat-mic.is-listening{
+  border-color:rgba(248,113,113,.55);
+  background:rgba(248,113,113,.16);
+  color:#fecaca;
+  animation:mic-pulse 1.4s ease-in-out infinite;
+}
+@keyframes mic-pulse{
+  0%,100%{box-shadow:0 0 0 0 rgba(248,113,113,.34)}
+  50%{box-shadow:0 0 0 6px rgba(248,113,113,0)}
+}
+
+/* Trails the answer inline rather than floating over it, so it never covers a
+   word and needs no positioning context on the bubble. */
+.chat-speak{
+  display:inline-flex;align-items:center;justify-content:center;
+  vertical-align:middle;
+  width:24px;height:24px;
+  margin-left:8px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.12);
+  background:rgba(255,255,255,.05);
+  color:rgba(226,232,240,.7);
+  transition:background .18s ease,color .18s ease;
+}
+.chat-speak:hover{background:rgba(255,255,255,.12);color:#f4f7fb}
+
+.chat-voice-error{
+  margin-top:8px;
+  font-size:12.5px;
+  line-height:1.5;
+  color:rgba(252,165,165,.92);
+}
+
+@media (prefers-reduced-motion:reduce){
+  .chat-mic.is-listening{animation:none}
+  .chat-mic,.chat-speak{transition:none}
+}
+
+/* ── Brand identity ─────────────────────────────────────────────────────────
+   The mark is Charminar (components/brand/CharminarMark.tsx). It is drawn in a
+   pale champagne gold rather than the app's blue for two reasons: #3b82f6 is
+   Tailwind's stock accent and reads as generic, and gold is what the monument
+   actually looks like floodlit. The tile stays dark — a coloured tile in the
+   header would compete with the red/amber/green the app uses for risk, and a
+   logo must never be mistaken for a status light. --brand is deliberately
+   paler than --amber so the two never read as the same colour side by side. */
+:root{--brand:#f0c987}
+
+.brand-mark{
+  color:var(--brand);
+  border-color:#3a3226;
+  background:#131110;
+}
+.brand:hover .brand-mark{
+  border-color:#6b5733;
+  box-shadow:0 0 0 1px rgba(240,201,135,.22);
+}
+.brand:hover strong{color:var(--brand)}
+.brand:focus-visible{outline-color:var(--brand)}
+
+/* ── Hyderabad horizon ──────────────────────────────────────────────────────
+   Sits on the hero's bottom edge, under everything else. Low contrast on
+   purpose: it should register as a place, not as content competing with the
+   headline. The gradient mask fades its base into the section border so the
+   buildings rise out of the page rather than sitting on a visible baseline. */
+.skyline-horizon{
+  position:absolute;
+  z-index:0;
+  right:0;bottom:0;left:0;
+  width:100%;
+  height:clamp(78px,11vw,132px);
+  color:#171b23;
+  pointer-events:none;
+  -webkit-mask-image:linear-gradient(to bottom,#000 55%,rgba(0,0,0,.35) 100%);
+  mask-image:linear-gradient(to bottom,#000 55%,rgba(0,0,0,.35) 100%);
+}
+
+/* Rain over the skyline, under the copy. Only mounted when it is actually
+   raining — see rainIntensityOf in app/page.tsx. */
+.hero-rain{
+  z-index:0;
+  opacity:.62;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22%,#000 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 22%,#000 100%);
+}
+
+/* The hero already establishes the stacking context; its copy just has to win
+   against the two backdrops above. */
+.hero-copy{position:relative;z-index:1}
+
+@media (max-width:760px){
+  .skyline-horizon{height:clamp(56px,16vw,88px)}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   WARNINGS
+   ══════════════════════════════════════════════════════════════════════════
+   The old card was red on all four borders, over a red-tinted background, with
+   pink caps, a pink issuer and pink body copy. Six red signals for one warning,
+   and the effect of shouting everything is that nothing is emphasised — the
+   card read as a colour swatch rather than as something to be read.
+
+   Rebuilt around one signal: a single solid rule down the left edge. Everything
+   else is the app's normal card surface with normal body copy, so the eye lands
+   on the sentence instead of the box. Colour still says "official warning" —
+   it just says it once.
+
+   Severity is untouched, deliberately. AlertSection.tsx renders the issuer's
+   own grading verbatim and never re-maps it, so nothing here is keyed to a
+   severity string: a word we failed to parse must not be able to quietly
+   downgrade a card's appearance.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.alerts-body{gap:12px}
+
+.alert-card{
+  padding:15px 17px 16px;
+  border:1px solid #2b2523;
+  border-left:3px solid var(--red);
+  border-radius:8px;
+  background:#141112;
+}
+
+/* Issuer to the far right, so the two halves of the header line read as
+   "what this is" and "who says so" rather than as one run of small caps. */
+.alert-card-top{gap:10px 12px}
+.alert-issuer{margin-left:auto;color:#8d8d93}
+
+/* The caps get a container. Floating pink capitals over a tinted card is what
+   made the old header look decorative; a bordered pill makes it a badge, and
+   the type can then be the only red thing in the sentence's vicinity. */
+.alert-official-tag{
+  padding:4px 10px 4px 8px;
+  border:1px solid rgba(239,91,103,.3);
+  border-radius:999px;
+  color:#ffb3ba;
+  background:rgba(239,91,103,.09);
+}
+
+/* Body copy in body-copy colour. The old #f0e2e3 tinted the warning's actual
+   text pink, which cost contrast and made the most important sentence on the
+   page look like part of the decoration. */
+p.alert-description{color:#e7e5e6}
+
+/* One line, middot-separated, instead of four stacked items each with its own
+   gap. The separator is a pseudo-element so it travels with the item it
+   follows and never begins a wrapped line. */
+.alert-meta{gap:4px 0;color:#83838a}
+.alert-meta>*:not(:last-child)::after{content:'·';margin:0 9px;color:#4e4e52}
+
+/* Same reasoning as .alert-link above: a severity grade is the issuer's wording,
+   not a measurement, so it leaves the mono column the timestamps live in. */
+.alert-severity{font-family:var(--font-sans);font-size:12.5px;letter-spacing:-.004em}
+
+/* Quiet by design. One full-width secondary button per card turned a list of
+   five warnings into a list of five buttons, which buries the warnings under
+   their own affordances. As text it is available on every card and prominent on
+   none. */
+.alert-ask-link{
+  display:inline-flex;align-items:center;gap:7px;
+  margin-top:13px;
+  border:0;padding:0;
+  color:#9dbcf0;background:transparent;
+  font-size:13px;font-weight:500;letter-spacing:-.006em;
+  transition:color .16s ease;
+}
+.alert-ask-link svg{flex:none}
+.alert-ask-link:hover{color:#cbdcff;text-decoration:underline;text-underline-offset:3px}
+.alert-ask-link:focus-visible{outline:2px solid var(--blue);outline-offset:3px;border-radius:3px}
+
+/* ── The app's own reading, when official warnings are present ──────────────
+   A footnote to them, not a peer. The dot carries the level so the line needs
+   no banner of its own — a second full-width status box directly beneath a real
+   bulletin reads as a second bulletin. */
+.alert-derived.subordinate{gap:7px;padding-top:14px}
+.alert-derived-line{
+  display:flex;align-items:flex-start;gap:10px;
+  color:#a0a0a7;
+  font-size:13.5px;font-weight:400;line-height:1.55;letter-spacing:-.005em;
+}
+.alert-derived-line b{color:#d8d8dc;font-weight:500}
+.alert-derived-dot{
+  flex:none;
+  width:7px;height:7px;
+  margin-top:6px;
+  border-radius:50%;
+  background:var(--muted);
+}
+.alert-derived-dot.risk-high{background:var(--red);box-shadow:0 0 8px rgba(239,91,103,.55)}
+.alert-derived-dot.risk-moderate{background:var(--amber);box-shadow:0 0 8px rgba(227,168,59,.55)}
+.alert-derived-dot.risk-safe{background:var(--green);box-shadow:0 0 8px rgba(67,201,139,.5)}
+
+/* ── Status banners ────────────────────────────────────────────────────────
+   The secondary line inherited .alert-copy span's grey, which put neutral grey
+   inside a coloured banner and made the second line look like it belonged to a
+   different component. Each banner now tints its own supporting text. */
+.alert-banner.high .alert-copy span{color:rgba(255,194,199,.76)}
+.alert-banner.moderate .alert-copy span{color:rgba(245,220,166,.76)}
+.alert-banner.safe .alert-copy span{color:rgba(169,232,201,.76)}
+.alert-banner.notice .alert-copy span{color:rgba(220,232,255,.74)}
+
+@media (max-width:760px){
+  .alert-card{padding:14px 15px 15px}
+  .alert-issuer{margin-left:0}
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DYNAMIC ISLAND
+   ══════════════════════════════════════════════════════════════════════════
+   The chat lives here now — a floating pill at the top of the page that morphs
+   into a conversation. See components/island/DynamicIsland.tsx for the three
+   rules that make it read as a morph rather than as a dropdown; this file owns
+   two of them.
+
+   ONE CONTAINER. .island-shell animates its own width, height and corner
+   radius. The three faces are all mounted, all absolutely filling it, and they
+   cross-fade. Nothing is ever added to or removed from the DOM by a state
+   change, which is why the shape appears to be a single object changing size.
+
+   THE CONTAINER LEADS. The outgoing face fades in 180ms flat; the incoming one
+   waits 100ms and then takes 260ms. So the shell is already most of the way to
+   its new size before its new contents are legible. That lag is what the eye
+   reads as physical — remove it and the whole thing collapses into a fade.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.island-root{
+  position:fixed;
+  inset:0;
+  /* The island is an overlay, not part of whichever screen renders it. On the
+     entry screen it sits inside `<main class="onboarding onboarding-lit">`, and
+     both that theme's `color:#0f172a` and the onboarding `text-align:center`
+     were inheriting straight through: the panel header read near-black on a
+     near-black surface, and the transcript was centred like a notice board.
+     Anchoring both here makes the island immune to its host. */
+  color:#f4f7fb;
+  text-align:left;
+  /* Above Leaflet, which claims up to 1000 for its own controls and would
+     otherwise scroll over the top of the island. */
+  z-index:1200;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding-top:11px;
+  pointer-events:none;
+}
+
+/* Dims the page behind the expanded panel. Inert — DynamicIsland's pointerdown
+   listener does the dismissing, so this never intercepts a click meant for the
+   page underneath. */
+.island-scrim{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  background:rgba(0,0,0,.36);
+  -webkit-backdrop-filter:blur(2px);
+  backdrop-filter:blur(2px);
+  pointer-events:none;
+  transition:opacity .34s ease;
+}
+.island-root[data-state="expanded"] .island-scrim{opacity:1}
+
+.island-shell{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.09);
+  background:rgba(13,13,15,.86);
+  -webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 10px 30px rgba(0,0,0,.45);
+  pointer-events:auto;
+  /* Closing: a plain decelerating curve. A shape that shrinks past its target
+     and springs back to it reads as a glitch, not as physics. */
+  transition:
+    width .38s cubic-bezier(.32,.72,0,1),
+    height .38s cubic-bezier(.32,.72,0,1),
+    border-radius .38s cubic-bezier(.32,.72,0,1),
+    transform .18s ease,
+    background .2s ease,
+    border-color .2s ease,
+    box-shadow .38s ease;
+}
+
+/* Opening: overshoot. The destination state owns the transition, so growing
+   springs and shrinking settles without any JS deciding which is which. */
+.island-root[data-state="alert"] .island-shell,
+.island-root[data-state="expanded"] .island-shell{
+  transition:
+    width .5s cubic-bezier(.34,1.32,.64,1),
+    height .5s cubic-bezier(.34,1.32,.64,1),
+    border-radius .5s cubic-bezier(.34,1.32,.64,1),
+    transform .18s ease,
+    background .2s ease,
+    border-color .2s ease,
+    box-shadow .5s ease;
+}
+
+/* ── The spring ────────────────────────────────────────────────────────────
+   A cubic-bezier is monotonic between its endpoints, so it can overshoot once
+   and then only approach the target — it cannot ring out. linear() can, because
+   it is a sampled curve rather than a shape.
+
+   These 13 stops are x(t) of a damped spring, ζ=0.68, ωn=15 rad/s, sampled every
+   ~42ms: rise, ~5% overshoot at stop 7, then two decreasing swings back to rest.
+   Kept behind @supports and stated in full rather than in a custom property —
+   a var() that fails substitution takes the whole `transition` with it and
+   leaves no animation at all, whereas an unparseable literal only drops its own
+   declaration and the cubic-bezier above survives. */
+@supports (transition-timing-function:linear(0,1)){
+  .island-root[data-state="alert"] .island-shell,
+  .island-root[data-state="expanded"] .island-shell{
+    transition:
+      width .52s linear(0,.196,.537,.815,.977,1.044,1.053,1.039,1.02,1.007,1,.997,1),
+      height .52s linear(0,.196,.537,.815,.977,1.044,1.053,1.039,1.02,1.007,1,.997,1),
+      border-radius .52s linear(0,.196,.537,.815,.977,1.044,1.053,1.039,1.02,1.007,1,.997,1),
+      transform .18s ease,
+      background .2s ease,
+      border-color .2s ease,
+      box-shadow .5s ease;
+  }
+}
+
+/* ── Sizes, i.e. the morph ─────────────────────────────────────────────────
+   Explicit values, because height:auto does not animate. The expanded panel
+   scrolls its transcript instead of growing, so a fixed height costs nothing. */
+.island-root[data-state="collapsed"] .island-shell{width:238px;height:40px;border-radius:999px}
+.island-root[data-state="alert"] .island-shell{width:min(380px,calc(100vw - 24px));height:66px;border-radius:22px}
+.island-root[data-state="expanded"] .island-shell{
+  width:min(600px,calc(100vw - 24px));
+  height:min(560px,calc(100vh - 92px));
+  border-radius:26px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 32px 72px rgba(0,0,0,.62);
+}
+
+/* The shell asks its own contents how much room they need, so the panel is
+   never a screenful of nothing. No prop and no state — just what is inside it:
+
+   `:empty`              nothing asked yet — the panel is only its own controls.
+   `:empty` + context    same, plus the row of live-reading chips (dashboard).
+   `:only-child`         one turn on screen; room to read it, none to spare.
+   (none of the above)   a conversation; the full 560px.
+
+   Height is transitioned on .island-shell already, so each step grows through
+   the same spring rather than snapping.
+
+   The `:empty` + context height is sized to the chip row as it wraps today (two
+   rows at 600px, three at 375px). A much longer area name would wrap one row
+   further and crowd the input; the fix is to get the chips onto fewer rows,
+   which is still to do. */
+.island-root[data-state="expanded"] .island-shell:has(.chat-messages:empty){
+  height:min(140px,calc(100vh - 92px));
+}
+.island-root[data-state="expanded"] .island-shell:has(.chat-messages:empty):has(.chat-context){
+  height:min(234px,calc(100vh - 92px));
+}
+.island-root[data-state="expanded"] .island-shell:has(.chat-messages>:only-child){
+  height:min(272px,calc(100vh - 92px));
+}
+/* An empty transcript takes no room at all — without this the flex:1 above
+   holds a blank band between the header and whatever follows it. */
+.island-panel .chat-messages:empty{flex:none;height:0;margin-top:0}
+
+/* Press feedback. The island has no hover on the device it comes from, but on a
+   pointer it needs to answer the cursor. */
+.island-root[data-state="collapsed"] .island-shell:hover{
+  background:rgba(21,21,24,.9);
+  border-color:rgba(255,255,255,.15);
+}
+.island-root[data-state="collapsed"] .island-shell:active{transform:scale(.97)}
+
+/* ── Faces ─────────────────────────────────────────────────────────────────
+   Stacked, all present, one visible. */
+.island-face{
+  position:absolute;
+  inset:0;
+  opacity:0;
+  transform:scale(.93);
+  pointer-events:none;
+  transition:opacity .18s ease,transform .3s cubic-bezier(.32,.72,0,1);
+}
+.island-root[data-state="collapsed"] .island-pill,
+.island-root[data-state="alert"] .island-alert,
+.island-root[data-state="expanded"] .island-panel{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+  transition:opacity .26s ease .1s,transform .42s cubic-bezier(.32,.72,0,1) .06s;
+}
+.island-face:focus-visible{outline:2px solid var(--blue);outline-offset:-4px;border-radius:inherit}
+
+/* ── Collapsed pill ── */
+.island-pill{
+  display:flex;align-items:center;gap:9px;
+  width:100%;height:100%;
+  padding:0 6px 0 5px;
+  border:0;
+  background:transparent;
+}
+.island-pill-mark{
+  display:grid;place-items:center;
+  flex:none;
+  width:28px;height:28px;
+  border-radius:999px;
+  color:var(--brand);
+  background:rgba(240,201,135,.1);
+}
+.island-pill-hint{
+  flex:1;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#a8a8b0;
+  text-align:left;
+  font-size:13px;font-weight:400;letter-spacing:-.006em;
+  transition:color .18s ease;
+}
+.island-pill:hover .island-pill-hint{color:#e3e3e8}
+.island-pill-cue{flex:none;margin-right:7px;color:#6d6d76}
+
+/* ── Alert face ──
+   The colours are the app's existing risk palette. The level is handed in by
+   the page from its own `risk` value — nothing here parses or grades anything. */
+.island-alert{
+  display:flex;align-items:center;gap:11px;
+  width:100%;height:100%;
+  padding:0 17px 0 12px;
+  border:0;
+  background:transparent;
+  text-align:left;
+}
+.island-alert-icon{
+  display:grid;place-items:center;
+  flex:none;
+  width:32px;height:32px;
+  border-radius:999px;
+  color:var(--muted);
+  background:rgba(255,255,255,.06);
+}
+.island-alert-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.island-alert-copy strong{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  font-size:13.5px;font-weight:500;line-height:1.35;letter-spacing:-.008em;
+}
+.island-alert-copy span{
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#93939c;
+  font-size:12px;font-weight:400;line-height:1.4;letter-spacing:-.004em;
+}
+.island-alert.level-high .island-alert-icon{color:#ffb3ba;background:rgba(239,91,103,.17)}
+.island-alert.level-moderate .island-alert-icon{color:#f5dca6;background:rgba(227,168,59,.17)}
+.island-alert.level-safe .island-alert-icon{color:#a9e8c9;background:rgba(67,201,139,.15)}
+.island-alert.level-notice .island-alert-icon{color:#dce8ff;background:rgba(59,130,246,.16)}
+
+/* ── Expanded panel ── */
+.island-panel{
+  display:flex;flex-direction:column;
+  width:100%;height:100%;
+  padding:15px 17px 16px;
+}
+.island-panel-top{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;
+  flex:none;
+  padding-bottom:13px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.island-panel-titles{display:flex;flex-direction:column;gap:3px;min-width:0}
+.island-panel-titles strong{font-size:15px;font-weight:600;line-height:1.3;letter-spacing:-.012em}
+.island-panel-titles span{color:#8f8f98;font-size:12.5px;font-weight:400;line-height:1.45;letter-spacing:-.004em}
+.island-close{
+  display:grid;place-items:center;
+  flex:none;
+  width:28px;height:28px;
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:999px;
+  color:#a0a0a8;
+  background:rgba(255,255,255,.05);
+  transition:color .16s ease,background .16s ease;
+}
+.island-close:hover{color:#f2f2f5;background:rgba(255,255,255,.13)}
+.island-close:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+/* The transcript takes whatever height is left rather than carrying its own
+   min/max, which is what lets the shell's height be the single source of truth
+   for how big the island is.
+
+   `overscroll-behavior:contain` stops scroll chaining: without it, a wheel that
+   reaches the end of the transcript is handed to the document and the page
+   scrolls away behind the open panel. On the panel too, so a drag over its
+   padding cannot chain either. The body lock in useBodyScrollLock covers the
+   rest of the page; this covers the one place a wheel is legitimately expected
+   to do something. */
+/* ── Transcript ──────────────────────────────────────────────────────────────
+   The legacy stylesheet left this centred, with the assistant's turn drawn as a
+   full-bleed black banner behind a blue rule — a notice board, not a
+   conversation. Both turns are bubbles now: left for the assistant, right for
+   the visitor, each inset from the opposite edge so the alternation is legible
+   at a glance and a two-word reply is a two-word bubble instead of a
+   560px-wide slab. The tightened corner on the speaker's side is the one detail
+   that makes a rounded rectangle read as speech. */
+.chat-messages{gap:11px}
+.bot-bubble,.user-bubble{
+  max-width:86%;
+  margin:0;
+  border-radius:15px;
+  text-wrap:pretty;
+}
+.bot-bubble{
+  align-self:flex-start;
+  border:1px solid rgba(255,255,255,.07);
+  border-left:1px solid rgba(255,255,255,.07);
+  border-bottom-left-radius:5px;
+  color:#e6e9ef;
+  background:rgba(255,255,255,.055);
+}
+.user-bubble{
+  align-self:flex-end;
+  border:1px solid rgba(125,196,255,.2);
+  border-bottom-right-radius:5px;
+  color:#eaf2ff;
+  background:rgba(59,130,246,.16);
+}
+/* The pending state is the assistant about to speak, so it sits where its
+   answer will land rather than centred on its own. */
+.bot-bubble.chat-thinking{
+  display:inline-flex;align-items:center;gap:9px;
+  color:#9ca3af;
+}
+
+.island-panel{overscroll-behavior:contain}
+.island-panel .chat-panel{display:flex;flex-direction:column;flex:1;min-height:0}
+.island-panel .chat-messages{flex:1;min-height:0;max-height:none;margin-top:13px;overscroll-behavior:contain}
+.island-panel .chat-context{flex:none;margin-top:12px;padding-top:12px}
+.island-panel .chat-input{flex:none;margin-top:12px}
+.island-panel .chat-voice-error{flex:none}
+
+@media (max-width:760px){
+  .island-root{padding-top:9px}
+  .island-root[data-state="collapsed"] .island-shell{width:min(292px,calc(100vw - 24px))}
+  .island-root[data-state="expanded"] .island-shell{height:min(560px,calc(100vh - 76px))}
+  .island-root[data-state="expanded"] .island-shell:has(.chat-messages:empty){height:min(132px,calc(100vh - 76px))}
+  .island-root[data-state="expanded"] .island-shell:has(.chat-messages:empty):has(.chat-context){height:min(272px,calc(100vh - 76px))}
+  .island-root[data-state="expanded"] .island-shell:has(.chat-messages>:only-child){height:min(316px,calc(100vh - 76px))}
+  .island-panel{padding:13px 14px 14px}
+  /* The topbar wraps at this width, which puts the brand exactly where the
+     island floats. Reserve the band above it. */
+  .topbar{padding-top:62px}
+  /* The wrapped header gives the cluster its own row, so it stops being pushed
+     right and spreads instead. The legacy `.topnav{order:3;width:100%}` was
+     written for a nav that sat directly in .topbar and made itself that row;
+     from in here it would only blow the cluster apart, so it is undone. */
+  .topbar-actions{width:100%;margin-left:0;justify-content:space-between;gap:12px 16px}
+  .topbar-actions .topnav{order:0;width:auto;justify-content:flex-start}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .island-shell,
+  .island-root[data-state="alert"] .island-shell,
+  .island-root[data-state="expanded"] .island-shell{transition:none}
+  .island-scrim{transition:none}
+  /* Kept as a short fade rather than nothing: an instant swap between two faces
+     of the same container is genuinely hard to follow. Reduced motion asks for
+     less movement, not for no continuity — so the scale is dropped and only the
+     opacity remains. */
+  .island-face{
+    transform:none;
+    transition:opacity .12s linear;
+  }
+  .island-root[data-state="collapsed"] .island-pill,
+  .island-root[data-state="alert"] .island-alert,
+  .island-root[data-state="expanded"] .island-panel{
+    transform:none;
+    transition:opacity .12s linear;
+  }
+  .island-root[data-state="collapsed"] .island-shell:active{transform:none}
 }
